@@ -301,10 +301,6 @@ namespace {
         {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
         {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1} };
 
-    std::vector<std::vector<std::vector<int32_t>>> lastLayer;
-    std::vector<std::vector<int32_t>> lastRow;
-    std::pair<int32_t, int32_t> lastCube;
-
     struct IsoVert {
         vec3 pos;
         float value;
@@ -329,16 +325,6 @@ namespace {
             }
         }
         return verts;
-    }
-
-    // Lerps intersection position on cube edge between v1, v2
-    int32_t lerpIntersection(const IsoVert& v1, const IsoVert& v2, const float threshold, std::vector<Vertex>* verts)
-    {
-        verts->push_back({
-            v1.pos + float(threshold - v1.value) * (v2.pos - v1.pos) / float(v2.value - v1.value),
-            vec3(0.f, 0.f, 0.f)
-        });
-        return verts->size() - 1;
     }
 
     vec3 lerpI(const IsoVert& v1, const IsoVert& v2, const float threshold, std::vector<Vertex>* verts)
@@ -369,49 +355,6 @@ namespace {
         int edges = EDGE_TABLE[cubeI];
         vec3 intersections[12];
 
-        /*
-        int32_t intersections[12] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-        // Get intersections from previous layer (no checking for zerolayer as these wont evaluate true)
-        if (x != 0) {
-            if(edges & 1) intersections[0] = lastLayer[y][x][0];
-            if(edges & 2) intersections[1] = lastLayer[y][x][1];
-            if(edges & 4) intersections[2] = lastLayer[y][x][2];
-            if(edges & 8) intersections[3] = lastLayer[y][x][3];
-        } else {
-            if(edges & 1) intersections[0] = lerpIntersection(corners[0], corners[1], threshold, verts);
-            if(edges & 2) intersections[1] = lerpIntersection(corners[1], corners[2], threshold, verts);
-            if(edges & 4) intersections[2] = lerpIntersection(corners[2], corners[3], threshold, verts);
-            if(edges & 8) intersections[3] = lerpIntersection(corners[3], corners[0], threshold, verts);
-        }
-
-        // Get intersections from previous row if possible
-        if (y != 0) {
-            if(edges & 16) intersections[4] = lastRow[x][1];
-            if(edges & 256) intersections[8] = lastRow[x][0];
-            if(edges & 512) intersections[9] = lastRow[x][2];
-        }
-        else {
-            if(edges & 16) intersections[4] = lerpIntersection(corners[4], corners[5], threshold, verts);
-            if(edges & 256) intersections[8] = lerpIntersection(corners[0], corners[4], threshold, verts);
-            if(edges & 512) intersections[9] = lerpIntersection(corners[1], corners[5], threshold, verts);
-        }
-
-        // Get intersections from previous cube if possible
-        if (x != 0) {
-            if(edges & 128) intersections[7] = lastCube.second;
-            if(edges & 2048) intersections[11] = lastCube.first;
-        }
-        else {
-            if(edges & 128) intersections[7] = lerpIntersection(corners[7], corners[4], threshold, verts);
-            if(edges & 2048) intersections[11] = lerpIntersection(corners[3], corners[7], threshold, verts);
-        }
-
-        // Lerp new intersections
-        if(edges & 32) intersections[5] = lerpIntersection(corners[5], corners[6], threshold, verts);
-        if(edges & 64) intersections[6] = lerpIntersection(corners[6], corners[7], threshold, verts);
-        if(edges & 1024) intersections[10] = lerpIntersection(corners[2], corners[6], threshold, verts);
-        */
-
         if(edges & 1) intersections[0] = lerpI(corners[0], corners[1], threshold, verts);
         if(edges & 2) intersections[1] = lerpI(corners[1], corners[2], threshold, verts);
         if(edges & 4) intersections[2] = lerpI(corners[2], corners[3], threshold, verts);
@@ -425,6 +368,7 @@ namespace {
         if(edges & 1024) intersections[10] = lerpI(corners[2], corners[6], threshold, verts);
         if(edges & 2048) intersections[11] = lerpI(corners[3], corners[7], threshold, verts);
 
+
         for (int i = 0; TRI_TABLE[cubeI][i] != -1; i += 3) {
             const size_t first = verts->size();
             const vec3& p0 = intersections[TRI_TABLE[cubeI][i]];
@@ -436,21 +380,6 @@ namespace {
             verts->push_back({p2, normal});
             faces->push_back(uvec3(first, first + 1, first + 2));
         }
-
-        /*
-        // Update precalculated indexes
-        lastLayer[y][x][0] = intersections[4];
-        lastLayer[y][x][1] = intersections[5];
-        lastLayer[y][x][2] = intersections[6];
-        lastLayer[y][x][3] = intersections[7];
-
-        lastRow[x][0] = intersections[11];
-        lastRow[x][1] = intersections[6];
-        lastRow[x][2] = intersections[10];
-
-        lastCube.first = intersections[10];
-        lastCube.second = intersections[5];
-        */
     }
 }
 
@@ -498,22 +427,13 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
     std::vector<std::vector<std::vector<IsoVert>>> grid;
     const float step = (max.z - min.z) / res.z;
     for (int k = 0; k <= res.z; ++k) {
-        const float depth = k * step;
+        const float depth = min.z + k * step;
         auto sdf = [&](const vec3& pos) {
             auto pos0 = pos * sin(time);
             return perlin_noise_3d(pos0.x + time, pos0.y + sin(time), pos0.z, 0.1f, 3, 1234);
         };
         grid.push_back(genLayer(res, vec2(min), vec2(max), depth, sdf));
     }
-
-    lastLayer = std::vector<std::vector<std::vector<int32_t> > >(
-        res.y,
-        std::vector<std::vector<int32_t> >(
-            res.x,
-            std::vector<int32_t>(4, -1)
-        )
-    );
-    lastRow = std::vector<std::vector<int32_t> >(res.x, std::vector<int32_t>(4, -1));
 
     std::vector<Vertex> verts;
     std::vector<uvec3> faces;

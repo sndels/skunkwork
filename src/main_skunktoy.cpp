@@ -43,13 +43,8 @@ int main()
 
     // Set up scene
     std::string vertPath(RES_DIRECTORY);
-    vertPath += "shader/basic_vert.glsl";
     std::string fragPath(RES_DIRECTORY);
-    fragPath += "shader/basic_frag.glsl";
-    //Shader shader(vertPath, fragPath, "");
-    vertPath = RES_DIRECTORY;
     vertPath += "shader/tri_vert.glsl";
-    fragPath = RES_DIRECTORY;
     fragPath += "shader/tri_frag.glsl";
     Shader triShader(vertPath, fragPath, "");
 
@@ -75,7 +70,6 @@ int main()
 
         // Try reloading the shader every 0.5s
         if (reloadTime.getSeconds() > 0.5f) {
-            //shader.reload();
             triShader.reload();
             reloadTime.reset();
         }
