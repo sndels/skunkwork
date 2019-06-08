@@ -1,13 +1,15 @@
 #ifndef MARCHED_HPP
 #define MARCHED_HPP
 
+#include <functional>
+
 #include <GL/gl3w.h>
 #include <glm/glm.hpp>
 
 class Marched
 {
 public:
-    Marched();
+    Marched(std::function<float(const glm::vec3& pos, const float time)> sdf);
     ~Marched();
 
     Marched(const Marched& other) = delete;
@@ -22,7 +24,7 @@ private:
     GLuint _vbo;
     GLuint _ibo;
     size_t _vertCount;
-
+    std::function<float(const glm::vec3& pos, const float time)> _sdf;
 };
 
 #endif // MARCHED_HPP

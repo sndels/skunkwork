@@ -1,5 +1,4 @@
 #include "marched.hpp"
-#include "noise.h"
 
     #include <iostream>
 
@@ -368,10 +367,11 @@ namespace {
     }
 }
 
-Marched::Marched() :
+Marched::Marched(std::function<float(const vec3& pos, const float time)> sdf):
     _vao(0),
     _vbo(0),
-    _vertCount(0)
+    _vertCount(0),
+    _sdf(sdf)
 {
     // Generate arrays
     glGenVertexArrays(1, &_vao);
@@ -404,10 +404,6 @@ void Marched::render() const
 
 void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const float time)
 {
-    auto sdf = [&](const vec3& pos) {
-        auto pos0 = pos * sin(time);
-        return perlin_noise_3d(pos0.x + time, pos0.y + sin(time), pos0.z, 0.1f, 3, 1234);
-    };
     // Sample the isosurface
     const uvec3 gridSize(res + uvec3(1));
     std::vector<IsoVert> grid(gridSize.x * gridSize.y * gridSize.z);
@@ -422,7 +418,7 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
             for (int i = 0; i <= res.x; ++i) {
                 const float x = min.x + step.x * i;
                 const vec3 pos(x, y, z);
-                grid[layer + row + i] = {pos, sdf(pos)};
+                grid[layer + row + i] = {pos, _sdf(pos, time)};
             }
         }
     }

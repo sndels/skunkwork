@@ -15,6 +15,7 @@
 #include "shader.hpp"
 #include "timer.hpp"
 #include "window.hpp"
+#include "noise.h"
 
 using namespace glm;
 
@@ -39,7 +40,12 @@ int main()
     gui.init(window.ptr());
 
     Quad q;
-    Marched m;
+    auto sdf = [&](const vec3& pos, const float time) {
+        auto pos0 = pos * sin(time);
+        return perlin_noise_3d(pos0.x + time, pos0.y + sin(time), pos0.z, 0.1f, 3, 1234);
+    };
+    Marched m(sdf);
+
 
     // Set up scene
     std::string vertPath(RES_DIRECTORY);
