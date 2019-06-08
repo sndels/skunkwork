@@ -311,22 +311,6 @@ namespace {
         vec3 normal;
     };
 
-    std::vector<std::vector<IsoVert>> genLayer(const uvec3& res, const vec2& min, const vec2& max, const float depth, std::function<float (const vec3&)> sdf)
-    {
-        const vec2 step = (max - min) / vec2(res);
-        std::vector<std::vector<IsoVert>> verts;
-        for (int j = 0; j <= res.y; ++j) {
-            const float y = min.y + step.y * j;
-            verts.push_back({});
-            for (int i = 0; i <= res.x; ++i) {
-                vec3 pos(min.x + step.x * i, y, depth);
-                pos -= vec3(1);
-                verts.back().push_back({pos, sdf(pos)});
-            }
-        }
-        return verts;
-    }
-
     vec3 lerpI(const IsoVert& v1, const IsoVert& v2, const float threshold, std::vector<Vertex>* verts)
     {
         return v1.pos + float(threshold - v1.value) * (v2.pos - v1.pos) / float(v2.value - v1.value);
@@ -423,16 +407,26 @@ void Marched::render() const
 
 void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const float time)
 {
+    auto sdf = [&](const vec3& pos) {
+        auto pos0 = pos * sin(time);
+        return perlin_noise_3d(pos0.x + time, pos0.y + sin(time), pos0.z, 0.1f, 3, 1234);
+    };
     // Sample the isosurface
     std::vector<std::vector<std::vector<IsoVert>>> grid;
-    const float step = (max.z - min.z) / res.z;
+    const vec3 step = (max - min) / vec3(res);
     for (int k = 0; k <= res.z; ++k) {
-        const float depth = min.z + k * step;
-        auto sdf = [&](const vec3& pos) {
-            auto pos0 = pos * sin(time);
-            return perlin_noise_3d(pos0.x + time, pos0.y + sin(time), pos0.z, 0.1f, 3, 1234);
-        };
-        grid.push_back(genLayer(res, vec2(min), vec2(max), depth, sdf));
+        const float z = min.z + step.z * k;
+        std::vector<std::vector<IsoVert>> verts;
+        for (int j = 0; j <= res.y; ++j) {
+            const float y = min.y + step.y * j;
+            verts.push_back({});
+            for (int i = 0; i <= res.x; ++i) {
+                const float x = min.x + step.x * i;
+                const vec3 pos(x, y, z);
+                verts.back().push_back({pos, sdf(pos)});
+            }
+        }
+        grid.push_back(verts);
     }
 
     std::vector<Vertex> verts;
