@@ -317,8 +317,7 @@ namespace {
     }
 
     // Pushes triangles in the given cube to verts and faces
-    void parseVolumeCube(IsoVert corners[8], const uint32_t x, const uint32_t y, const float threshold,
-                         std::vector<Vertex>* verts, std::vector<uvec3>* faces)
+    void parseVolumeCube(IsoVert corners[8], const uint32_t x, const uint32_t y, const float threshold, const uvec3& gridSize, std::vector<Vertex>* verts, std::vector<uvec3>* faces)
     {
         // TODO: This is borked after conversion to sdf?
         // Get index for cube variation
@@ -412,43 +411,45 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
         return perlin_noise_3d(pos0.x + time, pos0.y + sin(time), pos0.z, 0.1f, 3, 1234);
     };
     // Sample the isosurface
-    std::vector<std::vector<std::vector<IsoVert>>> grid;
+    const uvec3 gridSize(res + uvec3(1));
+    std::vector<IsoVert> grid(gridSize.x * gridSize.y * gridSize.z);
     const vec3 step = (max - min) / vec3(res);
     for (int k = 0; k <= res.z; ++k) {
         const float z = min.z + step.z * k;
-        std::vector<std::vector<IsoVert>> verts;
+        const size_t layer = k * gridSize.y * gridSize.x;
         for (int j = 0; j <= res.y; ++j) {
             const float y = min.y + step.y * j;
-            verts.push_back({});
+            const size_t row = j * gridSize.x;
             for (int i = 0; i <= res.x; ++i) {
                 const float x = min.x + step.x * i;
                 const vec3 pos(x, y, z);
-                verts.back().push_back({pos, sdf(pos)});
+                grid[layer + row + i] = {pos, sdf(pos)};
             }
         }
-        grid.push_back(verts);
     }
 
     std::vector<Vertex> verts;
     std::vector<uvec3> faces;
-    for (int k = 1; k <= res.z; ++k) {
-        const auto& layer0 = grid[k-1];
-        const auto& layer1 = grid[k];
+    for (int k = 0; k < res.z; ++k) {
+        const size_t layer0 = k * gridSize.y * gridSize.x;
+        const size_t layer1 = (k + 1) * gridSize.y * gridSize.x;
         // Go through the layer
         for (uint32_t j = 0; j < res.y - 1; ++j) {
+            const size_t row0 = j * gridSize.x;
+            const size_t row1 = (j + 1) * gridSize.x;
             for (uint32_t i = 0; i < res.x - 1; ++i) {
                 // Push cube verts to vector
                 IsoVert cVerts[8] = {
-                    layer0[j][i],
-                    layer0[j][i + 1],
-                    layer0[j + 1][i + 1],
-                    layer0[j + 1][i],
-                    layer1[j][i],
-                    layer1[j][i + 1],
-                    layer1[j + 1][i + 1],
-                    layer1[j + 1][i]
+                    grid[layer0 + row0 + i],
+                    grid[layer0 + row0 + i + 1],
+                    grid[layer0 + row1 + i + 1],
+                    grid[layer0 + row1 + i],
+                    grid[layer1 + row0 + i],
+                    grid[layer1 + row0 + i + 1],
+                    grid[layer1 + row1 + i + 1],
+                    grid[layer1 + row1 + i]
                 };
-                parseVolumeCube(cVerts, i, j, 0.f, &verts, &faces);
+                parseVolumeCube(cVerts, i, j, 0.f, gridSize, &verts, &faces);
             }
         }
     }
