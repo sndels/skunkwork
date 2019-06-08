@@ -3,6 +3,7 @@
 #define PI 3.14159265
 #define saturate(x) clamp(x, 0.0, 1.0)
 
+#include "uniforms.glsl"
 #include "shading.glsl"
 #include "tonemap.glsl"
 

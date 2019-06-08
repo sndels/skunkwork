@@ -36,7 +36,12 @@ else()
         PRIVATE
         -Wall
         -pedantic
-        -Xpreprocessor -fopenmp -lomp
+    )
+endif()
+if (APPLE)
+    target_include_directories(skunkwork
+        PRIVATE
+        /usr/local/Cellar/libomp/8.0.0/include
     )
 endif()
 target_compile_definitions(skunkwork PRIVATE ROCKET)
@@ -54,6 +59,12 @@ target_link_libraries(skunkwork
     librocket
     imgui
 )
+if (APPLE)
+    target_link_libraries(skunkwork
+        PRIVATE
+        /usr/local/Cellar/libomp/8.0.0/lib/libomp.a
+    )
+endif()
 
 # Copy dynamic libraries to build folder after build
 # A cleaner way of doing this even with msvc's build structure?
@@ -98,3 +109,9 @@ target_link_libraries(skunktoy
     libgl3w
     imgui 
 )
+if (APPLE)
+    target_link_libraries(skunktoy
+        PRIVATE
+        /usr/local/Cellar/libomp/8.0.0/lib/libomp.a
+    )
+endif()
