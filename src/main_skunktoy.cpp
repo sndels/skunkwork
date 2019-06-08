@@ -19,6 +19,15 @@
 
 using namespace glm;
 
+vec3 cs = vec3(0.132, 0.257, 0.231);
+static float cloudSdf(const vec3& pos, const float time)
+{
+    //vec3 pos0 = pos * vec3(0.5, 0.75, 0.5);
+    vec3 pos0 = pos * cs;
+    float ns = perlin_noise_3d(pos0.x + time, pos0.y, pos0.z, 0.01f, 2, 2345);
+    return ns + abs(pos0.y + 1);
+}
+
 #ifdef _WIN32
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
@@ -40,11 +49,13 @@ int main()
     gui.init(window.ptr());
 
     Quad q;
+    /*
     auto sdf = [&](const vec3& pos, const float time) {
         auto pos0 = pos * sin(time);
         return perlin_noise_3d(pos0.x + time, pos0.y + sin(time), pos0.z, 0.1f, 3, 1234);
     };
-    Marched m(sdf);
+    */
+    Marched m(cloudSdf);
 
 
     // Set up scene
@@ -62,9 +73,9 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    glClearColor(0.2, 0.2, 0.2, 1.0);
-    vec3 cameraPos(0, 0, 3);
-    vec3 cameraTgt(0);
+    glClearColor(0.3, 0.5, 0.8, 1.0);
+    vec3 cameraPos(-30, -20, 30);
+    vec3 cameraTgt(0, -20.5, 0);
     // Run the main loop
     int t = 0;
     while (window.open()) {
@@ -86,11 +97,12 @@ int main()
             globalTime.reset();
 
         marchTime.reset();
-        m.update(uvec3(40), vec3(0, 0, 0), vec3(4, 4, 4), (t * 16) / 1000.0);
+        m.update(uvec3(30), vec3(-32), vec3(32), (t * 16) / 1000.0);
 
         ImGui::Begin("HAX");
         ImGui::DragFloat3("campos", (float*)&cameraPos, 0.01f);
         ImGui::DragFloat3("camtgt", (float*)&cameraTgt, 0.01f);
+        ImGui::DragFloat3("cs", (float*)&cs, 0.001f);
         ImGui::Text("march time: %.1f", marchTime.getSeconds() * 1000);
         ImGui::End();
 

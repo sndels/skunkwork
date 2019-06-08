@@ -445,7 +445,7 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
                     grid[layer1 + row1 + i + 1],
                     grid[layer1 + row1 + i]
                 };
-                parseVolumeCube(cVerts, i, j, 0.f, gridSize, &ompVerts[threadID]);
+                parseVolumeCube(cVerts, i, j, -0.5f, gridSize, &ompVerts[threadID]);
             }
         }
     }

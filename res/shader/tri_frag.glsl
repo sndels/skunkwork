@@ -15,7 +15,8 @@ uniform vec3 uEye;
 out vec4 outColor;
 
 // TODO: Uniform inputs
-vec3 light_dir = vec3(-1, -1, -1);
+//vec3 light_dir = vec3(-1, -1, -1);
+vec3 light_dir = vec3(1, 1, -1);
 vec3 light_int = vec3(4);
 
 void main()
@@ -28,6 +29,7 @@ void main()
     vec3 v = normalize(uEye - worldPos);
     vec3 l = -normalize(light_dir);
     vec3 color = light_int * evalBRDF(normalize(worldNormal), v, l, m);
+    color += vec3(0.2, 0.2, 0.5);
 
     outColor = vec4(tonemap(color), 1.f);
 }
