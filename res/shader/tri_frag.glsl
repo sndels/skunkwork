@@ -11,12 +11,14 @@ layout(location = 0) in vec3 worldPos;
 layout(location = 1) in vec3 worldNormal;
 
 uniform vec3 uEye;
+uniform vec3 uAdditionalColor;
+uniform vec3 uLightDir;
 
 out vec4 outColor;
 
 // TODO: Uniform inputs
 //vec3 light_dir = vec3(-1, -1, -1);
-vec3 light_dir = vec3(1, 1, -1);
+//vec3 light_dir = vec3(1, 1, -1);
 vec3 light_int = vec3(4);
 
 void main()
@@ -27,9 +29,9 @@ void main()
     m.roughness = 1;
 
     vec3 v = normalize(uEye - worldPos);
-    vec3 l = -normalize(light_dir);
+    vec3 l = -normalize(uLightDir);
     vec3 color = light_int * evalBRDF(normalize(worldNormal), v, l, m);
-    color += vec3(0.2, 0.2, 0.5);
+    color += uAdditionalColor; //vec3(0.2, 0.2, 0.5);
 
     outColor = vec4(tonemap(color), 1.f);
 }

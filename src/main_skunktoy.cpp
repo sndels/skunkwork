@@ -22,8 +22,7 @@ using namespace glm;
 vec3 cs = vec3(0.132, 0.257, 0.231);
 static float cloudSdf(const vec3& pos, const float time)
 {
-    //vec3 pos0 = pos * vec3(0.5, 0.75, 0.5);
-    vec3 pos0 = pos * cs;
+    vec3 pos0 = pos * cs + vec3(10, 0, 0);
     float ns = perlin_noise_3d(pos0.x + time, pos0.y, pos0.z, 0.01f, 2, 2345);
     return ns + abs(pos0.y + 1);
 }
@@ -49,13 +48,7 @@ int main()
     gui.init(window.ptr());
 
     Quad q;
-    /*
-    auto sdf = [&](const vec3& pos, const float time) {
-        auto pos0 = pos * sin(time);
-        return perlin_noise_3d(pos0.x + time, pos0.y + sin(time), pos0.z, 0.1f, 3, 1234);
-    };
-    */
-    Marched m(cloudSdf);
+    Marched cloudMarch(cloudSdf);
 
 
     // Set up scene
@@ -97,7 +90,7 @@ int main()
             globalTime.reset();
 
         marchTime.reset();
-        m.update(uvec3(30), vec3(-32), vec3(32), (t * 16) / 1000.0);
+        cloudMarch.update(uvec3(30), vec3(-32), vec3(32), (t * 16) / 1000.0);
 
         ImGui::Begin("HAX");
         ImGui::DragFloat3("campos", (float*)&cameraPos, 0.01f);
@@ -117,7 +110,16 @@ int main()
         glUniformMatrix3fv(glGetUniformLocation(triShader._progID, "uNormalToWorld"), 1, false, (GLfloat*) &normalToWorld);
         glUniformMatrix4fv(glGetUniformLocation(triShader._progID, "uWorldToClip"), 1, false, (GLfloat*) &worldToClip);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uCameraToClip"), 1, (GLfloat*) &cameraPos);
-        m.render();
+
+        /* Clouds */
+        vec3 lightDir = vec3(-1, 1, -1);
+        glUniform3fv(glGetUniformLocation(triShader._progID, "uLightDir"),
+                     1, (GLfloat*) &lightDir);
+        vec3 additionalColor = vec3(0.1, 0.2, 0.7);
+        glUniform3fv(glGetUniformLocation(triShader._progID, "uAdditionalColor"),
+                     1, (GLfloat*) &additionalColor);
+        cloudMarch.render();
+
         sceneProf.endSample();
 
         if (window.drawGUI())
