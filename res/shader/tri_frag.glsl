@@ -13,6 +13,7 @@ layout(location = 1) in vec3 worldNormal;
 uniform vec3 uEye;
 uniform vec3 uAdditionalColor;
 uniform vec3 uLightDir;
+uniform vec3 uColor;
 
 out vec4 outColor;
 
@@ -24,7 +25,8 @@ vec3 light_int = vec3(4);
 void main()
 {
     Material m;
-    m.albedo = vec3(1);
+    //m.albedo = vec3(0.87, 0.62, 0);
+    m.albedo = uColor;
     m.metallic = 0;
     m.roughness = 1;
 

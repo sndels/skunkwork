@@ -5,6 +5,7 @@
 
 #include <GL/gl3w.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include "imgui.h"
 
@@ -27,6 +28,28 @@ static float cloudSdf(const vec3& pos, const float time)
     return ns + abs(pos0.y + 1);
 }
 
+static float duneSdf (const vec3& pos, const float time) {
+    auto pos0 = rotate(0.5f, vec3(0, 1, 0)) * vec4(pos * vec3(0.5), 1);
+    float ns = perlin_noise_3d(pos0.x - time * 8.01, pos0.y, pos0.z, 0.1f, 2,
+                               1234);
+    return ns + (pos.y - 2);
+}
+
+static float derp(float a, float b, float t)
+{
+    return a * (1.0f - t) + b * t;
+}
+
+static float plantSdf (const vec3& pos, const float time) {
+    float t = fmodf(time, 1.0f);
+    float amnt = derp(3.2f, -0.15f, t); /* TODO sync */
+    auto pos0 = rotate(0.5f, vec3(0, 1, 0)) * vec4(pos * vec3(0.5), 1);
+    float ns = perlin_noise_3d(pos0.x - time * 8.01, pos0.y, pos0.z, 0.3, 2,
+                               1234);
+    return ns + (pos.y - 2 + amnt);
+}
+
+
 #ifdef _WIN32
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
@@ -48,7 +71,10 @@ int main()
     gui.init(window.ptr());
 
     Quad q;
+
     Marched cloudMarch(cloudSdf);
+    Marched duneMarch(duneSdf);
+    Marched plantMarch(plantSdf);
 
 
     // Set up scene
@@ -91,6 +117,8 @@ int main()
 
         marchTime.reset();
         cloudMarch.update(uvec3(30), vec3(-32), vec3(32), (t * 16) / 1000.0);
+        duneMarch.update(uvec3(30, 50, 30), vec3(-8), vec3(8), (t * 16) / 2000.0);
+        plantMarch.update(uvec3(30, 50, 30), vec3(-8), vec3(8), (t * 16) / 2000.0);
 
         ImGui::Begin("HAX");
         ImGui::DragFloat3("campos", (float*)&cameraPos, 0.01f);
@@ -118,8 +146,21 @@ int main()
         vec3 additionalColor = vec3(0.1, 0.2, 0.7);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uAdditionalColor"),
                      1, (GLfloat*) &additionalColor);
+        vec3 color = vec3(1);
+        glUniform3fv(glGetUniformLocation(triShader._progID, "uColor"), 1, (GLfloat*) &color);
         cloudMarch.render();
 
+
+        /* Dunes */
+        lightDir = vec3(-1, -1, -1);
+        glUniform3fv(glGetUniformLocation(triShader._progID, "uLightDir"),
+                     1, (GLfloat*) &lightDir);
+        color = vec3(0.87, 0.62, 0);
+        glUniform3fv(glGetUniformLocation(triShader._progID, "uColor"), 1, (GLfloat*) &color);
+        duneMarch.render();
+        color = vec3(0, 0.87, 0.11);
+        glUniform3fv(glGetUniformLocation(triShader._progID, "uColor"), 1, (GLfloat*) &color);
+        plantMarch.render();
         sceneProf.endSample();
 
         if (window.drawGUI())
