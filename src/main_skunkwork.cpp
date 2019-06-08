@@ -54,6 +54,9 @@ int main()
     Window window;
     if (!window.init(1280, 720, "skunkwork"))
         return -1;
+#ifndef DRAW_GUI
+    glfwSetInputMode(window.ptr(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+#endif
 
     // Setup imgui
     GUI gui;
