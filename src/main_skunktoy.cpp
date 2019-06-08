@@ -64,6 +64,7 @@ int main()
 
     glClearColor(0.2, 0.2, 0.2, 1.0);
     vec3 cameraPos(0, 0, 3);
+    vec3 cameraTgt(0);
     // Run the main loop
     int t = 0;
     while (window.open()) {
@@ -89,14 +90,15 @@ int main()
 
         ImGui::Begin("HAX");
         ImGui::DragFloat3("campos", (float*)&cameraPos, 0.01f);
+        ImGui::DragFloat3("camtgt", (float*)&cameraTgt, 0.01f);
         ImGui::Text("march time: %.1f", marchTime.getSeconds() * 1000);
         ImGui::End();
 
         mat4 modelToWorld = mat4(1);
         mat3 normalToWorld = mat3(transpose(inverse(modelToWorld)));
         mat4 worldToClip =
-            perspective(45.f, window.width() / float(window.height()), 0.01f, 10.f) *
-            lookAt(cameraPos, vec3(0, 0, 0), vec3(0, 1, 0));
+            perspective(45.f, window.width() / float(window.height()), 0.01f, 100.f) *
+            lookAt(cameraPos, cameraTgt, vec3(0, 1, 0));
 
         triShader.bind();
         glUniformMatrix4fv(glGetUniformLocation(triShader._progID, "uModelToWorld"), 1, false, (GLfloat*) &modelToWorld);
