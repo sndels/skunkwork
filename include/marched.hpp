@@ -21,7 +21,7 @@ private:
     GLuint _vao;
     GLuint _vbo;
     GLuint _ibo;
-    size_t _indiceCount;
+    size_t _vertCount;
 
 };
 

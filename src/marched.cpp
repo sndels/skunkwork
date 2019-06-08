@@ -1,6 +1,10 @@
 #include "marched.hpp"
 #include "noise.h"
 
+    #include <iostream>
+
+#include <omp.h>
+
 #include <functional>
 #include <vector>
 
@@ -317,7 +321,7 @@ namespace {
     }
 
     // Pushes triangles in the given cube to verts and faces
-    void parseVolumeCube(IsoVert corners[8], const uint32_t x, const uint32_t y, const float threshold, const uvec3& gridSize, std::vector<Vertex>* verts, std::vector<uvec3>* faces)
+    void parseVolumeCube(IsoVert corners[8], const uint32_t x, const uint32_t y, const float threshold, const uvec3& gridSize, std::vector<Vertex>* verts)
     {
         // TODO: This is borked after conversion to sdf?
         // Get index for cube variation
@@ -353,7 +357,6 @@ namespace {
 
 
         for (int i = 0; TRI_TABLE[cubeI][i] != -1; i += 3) {
-            const size_t first = verts->size();
             const vec3& p0 = intersections[TRI_TABLE[cubeI][i]];
             const vec3& p1 = intersections[TRI_TABLE[cubeI][i + 1]];
             const vec3& p2 = intersections[TRI_TABLE[cubeI][i + 2]];
@@ -361,7 +364,6 @@ namespace {
             verts->push_back({p0, normal});
             verts->push_back({p1, normal});
             verts->push_back({p2, normal});
-            faces->push_back(uvec3(first, first + 1, first + 2));
         }
     }
 }
@@ -369,13 +371,11 @@ namespace {
 Marched::Marched() :
     _vao(0),
     _vbo(0),
-    _ibo(0),
-    _indiceCount(0)
+    _vertCount(0)
 {
     // Generate arrays
     glGenVertexArrays(1, &_vao);
     glGenBuffers(1, &_vbo);
-    glGenBuffers(1, &_ibo);
 }
 
 Marched::~Marched()
@@ -388,19 +388,17 @@ Marched::~Marched()
 Marched::Marched(Marched&& other) :
     _vao(other._vao),
     _vbo(other._vbo),
-    _ibo(other._ibo),
-    _indiceCount(other._indiceCount)
+    _vertCount(other._vertCount)
 {
     other._vao = 0;
     other._vbo = 0;
-    other._ibo = 0;
-    other._indiceCount = 0;
+    other._vertCount = 0;
 }
 
 void Marched::render() const
 {
     glBindVertexArray(_vao);
-    glDrawElements(GL_TRIANGLES, _indiceCount, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, _vertCount);
     glBindVertexArray(0);
 }
 
@@ -414,6 +412,7 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
     const uvec3 gridSize(res + uvec3(1));
     std::vector<IsoVert> grid(gridSize.x * gridSize.y * gridSize.z);
     const vec3 step = (max - min) / vec3(res);
+    #pragma omp parallel for
     for (int k = 0; k <= res.z; ++k) {
         const float z = min.z + step.z * k;
         const size_t layer = k * gridSize.y * gridSize.x;
@@ -428,9 +427,10 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
         }
     }
 
-    std::vector<Vertex> verts;
-    std::vector<uvec3> faces;
+    std::vector<std::vector<Vertex>> ompVerts(omp_get_max_threads());
+    #pragma omp parallel for
     for (int k = 0; k < res.z; ++k) {
+        const size_t threadID = omp_get_thread_num();
         const size_t layer0 = k * gridSize.y * gridSize.x;
         const size_t layer1 = (k + 1) * gridSize.y * gridSize.x;
         // Go through the layer
@@ -449,10 +449,14 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
                     grid[layer1 + row1 + i + 1],
                     grid[layer1 + row1 + i]
                 };
-                parseVolumeCube(cVerts, i, j, 0.f, gridSize, &verts, &faces);
+                parseVolumeCube(cVerts, i, j, 0.f, gridSize, &ompVerts[threadID]);
             }
         }
     }
+
+    std::vector<Vertex> verts;
+    for (auto& ov : ompVerts)
+        verts.insert(verts.end(), ov.begin(), ov.end());
 
     for (auto& v : verts)
         v.normal = normalize(v.normal);
@@ -463,9 +467,6 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*verts.size(), verts.data(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::uvec3) * faces.size(), faces.data(), GL_STATIC_DRAW);
-
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 
@@ -474,5 +475,5 @@ void Marched::update(const uvec3& res, const vec3& min, const vec3& max, const f
 
     glBindVertexArray(0);
 
-    _indiceCount = faces.size() * 3;
+    _vertCount = verts.size();
 }
