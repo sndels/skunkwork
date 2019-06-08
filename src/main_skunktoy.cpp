@@ -50,9 +50,9 @@ int main()
 
     Timer reloadTime;
     Timer globalTime;
+    Timer marchTime;
     GpuProfiler sceneProf(5);
-    std::vector<std::pair<std::string, const GpuProfiler*>> profilers =
-        {{"Scene", &sceneProf}};
+    std::vector<std::pair<std::string, const GpuProfiler*>> profilers = {};
 
     glEnable(GL_DEPTH_TEST);
 
@@ -78,8 +78,12 @@ int main()
         if (gui.useSliderTime())
             globalTime.reset();
 
+        marchTime.reset();
+        m.update(uvec3(40), vec3(0, 0, 0), vec3(4, 4, 4), (t * 16) / 1000.0);
+
         ImGui::Begin("HAX");
         ImGui::DragFloat3("campos", (float*)&cameraPos, 0.01f);
+        ImGui::Text("march time: %.1f", marchTime.getSeconds() * 1000);
         ImGui::End();
 
         mat4 modelToWorld = mat4(1);
@@ -87,9 +91,6 @@ int main()
         mat4 worldToClip =
             perspective(45.f, window.width() / float(window.height()), 0.01f, 10.f) *
             lookAt(cameraPos, vec3(0, 0, 0), vec3(0, 1, 0));
-
-        sceneProf.startSample();
-        m.update(uvec3(40), vec3(0, 0, 0), vec3(4, 4, 4), (t * 16) / 1000.0);
 
         triShader.bind();
         glUniformMatrix4fv(glGetUniformLocation(triShader._progID, "uModelToWorld"), 1, false, (GLfloat*) &modelToWorld);
