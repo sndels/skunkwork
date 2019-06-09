@@ -35,8 +35,10 @@ void main()
     vec3 color = light_int * evalBRDF(normalize(worldNormal), v, l, m);
     color += uAdditionalColor; //vec3(0.2, 0.2, 0.5);
 
-    if (uTime < 1) {
-        color = mix(vec3(0), color, uTime);
+    if (uTime < 5) {
+       color = vec3(0);
+    } else if (uTime < 6) {
+        color = mix(vec3(0), color, uTime - 5.f);
     } else if (uTime > 120) {
         color = mix(color, vec3(0), saturate((uTime - 120) / 4));
     }

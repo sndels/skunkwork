@@ -178,8 +178,10 @@ int main()
 #endif
 
         vec3 clearColor = sky;
-        if (rTime < 1)
-            clearColor = mix(vec3(0), sky, rTime);
+        if (rTime < 5)
+            clearColor = vec3(0);
+        else if (rTime < 6)
+            clearColor = mix(vec3(0), sky, rTime - 5.f);
         else if (rTime > 121.f && rTime < 123.93f)
             clearColor = mix(sky, vec3(0), (rTime - 121.f) / 4.f);
         else if (rTime > 123.93f)

@@ -22,6 +22,7 @@ bool Window::init(int w, int h, const std::string& title)
 
     // Create the window
     _window = glfwCreateWindow(_w, _h, title.c_str(), glfwGetPrimaryMonitor(), NULL);
+    //_window = glfwCreateWindow(_w, _h, title.c_str(), NULL, NULL);
     if (!_window) {
         glfwTerminate();
         return false;
