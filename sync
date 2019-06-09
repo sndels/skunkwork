@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rootElement>
+<tracks rows="10000" startRow="0" endRow="10000" rowsPerBeat="8"
+beatsPerMin="125">
+	<track name="time" folded="0" muteKeyCount="0" color="ffb27474">
+		<key row="0" value="0.000000" interpolation="1" />
+		<key row="2104" value="123.990860" interpolation="1" />
+		<key row="2189" value="129.000000" interpolation="1" />
+	</track>
+	<track name="scene" folded="0" muteKeyCount="0" color="ffb28050">
+		<key row="0" value="0.000000" interpolation="0" />
+		<key row="376" value="1.000000" interpolation="0" />
+		<key row="880" value="2.000000" interpolation="0" />
+		<key row="1376" value="1.000000" interpolation="0" />
+		<key row="1880" value="0.000000" interpolation="0" />
+	</track>
+</tracks>
+	</rootElement>

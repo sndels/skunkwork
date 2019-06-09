@@ -25,7 +25,7 @@
 using namespace glm;
 
 // Comment out to disable autoplay without tcp-Rocket
-#define MUSIC_AUTOPLAY
+//#define MUSIC_AUTOPLAY
 // Comment out to load sync from files
 #define TCPROCKET
 // Comment out to draw gui
@@ -147,7 +147,7 @@ int main()
 
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.3, 0.5, 0.8, 1.0);
+    vec3 sky(0.3, 0.5, 0.8);
     vec3 cameraPos(-30, -20, 30);
     vec3 cameraTgt(0, -20.5, 0);
     // Run the main loop
@@ -156,8 +156,8 @@ int main()
 
         // Sync
         double syncRow = AudioStream::getInstance().getRow();
-        float rTime = globalTime.getSeconds();//(float)sync_get_val(timeTrack, syncRow);
-        //size_t scene = min(max((int)sync_get_val(timeTrack, syncRow), 0), 2);
+        float rTime = (float)sync_get_val(timeTrack, syncRow);
+        size_t scene = min(max((int)sync_get_val(sceneTrack, syncRow), 0), 2);
 
 #ifdef TCPROCKET
         // Try re-connecting to rocket-server if update fails
@@ -170,6 +170,15 @@ int main()
         if (window.drawGUI())
             gui.startFrame(window.height(), triShader.dynamicUniforms(), profilers);
 #endif
+
+        vec3 clearColor = sky;
+        if (rTime < 1)
+            clearColor = mix(vec3(0), sky, rTime);
+        else if (rTime > 121.f && rTime < 123.93f)
+            clearColor = mix(sky, vec3(0), (rTime - 121.f) / 4.f);
+        else if (rTime > 123.93f)
+            clearColor = vec3(0);
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -186,14 +195,14 @@ int main()
 #endif
 
         marchTime.reset();
-        //if (scene == 0)
+        if (scene == 0 || scene == 1)
             cloudMarch.update(uvec3(30), vec3(-32), vec3(32), rTime);
-        //else if (scene == 1)
+        if (scene == 1)
             seaMarch.update(uvec3(30), vec3(-32), vec3(32), rTime);
-        //else {
-            duneMarch.update(uvec3(30, 50, 30), vec3(-8), vec3(8), rTime / 2);
-            plantMarch.update(uvec3(30, 50, 30), vec3(-8), vec3(8), rTime / 2);
-        //}
+        if (scene == 2) {
+            duneMarch.update(uvec3(60, 60, 40), vec3(-15), vec3(15), rTime / 10);
+            plantMarch.update(uvec3(40, 60, 40), vec3(-15), vec3(15), rTime / 10);
+        }
 
 #ifdef DRAW_GUI
         ImGui::Begin("HAX");
@@ -205,13 +214,16 @@ int main()
 #endif
 
 
-        /*
-        if (scene == 0 || scene == 1) {
-            // Scene cam setup
+        if (scene == 0) {
+            cameraPos = vec3(-40, -15, -10);
+            cameraTgt = vec3(0, -10.5, -10);
+        } else if (scene == 1) {
+            cameraPos = vec3(-30, -20, 20);
+            cameraTgt = vec3(0, -20.5, 0);
         } else {
-
+            cameraPos = vec3(10, 5, 16);
+            cameraTgt = vec3(0, 0, 0);
         }
-        */
         mat4 worldToClip =
             perspective(45.f, window.width() / float(window.height()), 0.01f, 100.f) *
             lookAt(cameraPos, cameraTgt, vec3(0, 1, 0));
@@ -222,8 +234,7 @@ int main()
         glUniform3fv(glGetUniformLocation(triShader._progID, "uEye"), 1, (GLfloat*) &cameraPos);
 
         /* Clouds */
-        //if (scene == 0 || scene == 1)
-        {
+        if (scene == 0 || scene == 1) {
         vec3 lightDir = vec3(-1, 1, -1);
         mat4 modelToWorld = mat4(1);
         mat3 normalToWorld = mat3(transpose(inverse(modelToWorld)));
@@ -240,8 +251,7 @@ int main()
         }
 
         /* Sea */
-        //if (scene == 1)
-        {
+        if (scene == 1) {
         vec3 lightDir = vec3(-1, -1, -1);
         mat4 modelToWorld = translate(vec3(0, -24, 0));
         mat4 normalToWorld = mat3(transpose(inverse(modelToWorld)));
@@ -255,8 +265,7 @@ int main()
         }
 
         /* Dunes */
-        // if (scene == 2)
-        {
+        if (scene == 2) {
         vec3 lightDir = vec3(-1, -1, -1);
         mat4 modelToWorld = mat4(1);
         mat3 normalToWorld = mat3(transpose(inverse(modelToWorld)));
