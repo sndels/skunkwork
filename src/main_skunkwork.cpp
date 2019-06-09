@@ -40,10 +40,13 @@ static struct sync_cb audioSync = {
 };
 #endif // TCPROCKET
 
+bool seaScene = false;
 vec3 cs = vec3(0.132, 0.257, 0.231);
 static float cloudSdf(const vec3& pos, const float time)
 {
     vec3 pos0 = pos * cs + vec3(10, 0, 0);
+    if (seaScene)
+        pos0 -= vec3(20, 0, 20);
     float ns = perlin_noise_3d(pos0.x + time, pos0.y, pos0.z, 0.01f, 2, 2345);
     return ns + abs(pos0.y + 1);
 }
@@ -160,6 +163,7 @@ int main()
         float rTime = (float)sync_get_val(timeTrack, syncRow);
         size_t scene = min(max((int)sync_get_val(sceneTrack, syncRow), 0), 2);
         trees = (float)sync_get_val(treesTrack, syncRow);
+        seaScene = scene == 1;
 
 #ifdef TCPROCKET
         // Try re-connecting to rocket-server if update fails
