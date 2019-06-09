@@ -25,11 +25,11 @@
 using namespace glm;
 
 // Comment out to disable autoplay without tcp-Rocket
-//#define MUSIC_AUTOPLAY
+#define MUSIC_AUTOPLAY
 // Comment out to load sync from files
-#define TCPROCKET
+//#define TCPROCKET
 // Comment out to draw gui
-#define DRAW_GUI
+//#define DRAW_GUI
 
 #ifdef TCPROCKET
 //Set up audio callbacks for rocket
@@ -60,9 +60,9 @@ static float derp(float a, float b, float t)
     return a * (1.0f - t) + b * t;
 }
 
+float trees = 3.2f;
 static float plantSdf (const vec3& pos, const float time) {
-    float t = fmodf(time, 1.0f);
-    float amnt = derp(3.2f, -0.15f, t); /* TODO sync */
+    float amnt = derp(3.2f, -0.15f, trees);
     auto pos0 = rotate(0.5f, vec3(0, 1, 0)) * vec4(pos * vec3(0.5), 1);
     float ns = perlin_noise_3d(pos0.x - time * 8.01, pos0.y, pos0.z, 0.3, 2,
                                1234);
@@ -134,6 +134,7 @@ int main()
     // Init rocket tracks here
     const sync_track* timeTrack = sync_get_track(rocket, "time");
     const sync_track* sceneTrack = sync_get_track(rocket, "scene");
+    const sync_track* treesTrack = sync_get_track(rocket, "trees");
 
     Timer reloadTime;
     Timer globalTime;
@@ -158,6 +159,7 @@ int main()
         double syncRow = AudioStream::getInstance().getRow();
         float rTime = (float)sync_get_val(timeTrack, syncRow);
         size_t scene = min(max((int)sync_get_val(sceneTrack, syncRow), 0), 2);
+        trees = (float)sync_get_val(treesTrack, syncRow);
 
 #ifdef TCPROCKET
         // Try re-connecting to rocket-server if update fails
@@ -221,7 +223,7 @@ int main()
             cameraPos = vec3(-30, -20, 20);
             cameraTgt = vec3(0, -20.5, 0);
         } else {
-            cameraPos = vec3(10, 5, 16);
+            cameraPos = vec3(9, 5, 15);
             cameraTgt = vec3(0, 0, 0);
         }
         mat4 worldToClip =

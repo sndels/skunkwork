@@ -21,35 +21,35 @@ add_definitions(-DRES_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/res/")
 
 # Set up project targets
 # WIN32 tells to not build a cmd-app on windows
-add_executable(skunkwork WIN32 ${SKUNKWORK_SOURCES})
-target_compile_features(skunkwork
+add_executable(cubnature WIN32 ${SKUNKWORK_SOURCES})
+target_compile_features(cubnature
     PRIVATE
     cxx_std_17
 )
 if (MSVC)
-    target_compile_options(skunkwork
+    target_compile_options(cubnature
         PRIVATE
         /Wall
     )
 else()
-    target_compile_options(skunkwork
+    target_compile_options(cubnature
         PRIVATE
         -Wall
         -pedantic
     )
 endif()
 if (APPLE)
-    target_include_directories(skunkwork
+    target_include_directories(cubnature
         PRIVATE
         /usr/local/Cellar/libomp/8.0.0/include
     )
 endif()
-target_compile_definitions(skunkwork PRIVATE ROCKET)
-target_include_directories(skunkwork
+target_compile_definitions(cubnature PRIVATE ROCKET)
+target_include_directories(cubnature
     PRIVATE
     ${SKUNKWORK_INCLUDE_DIR}
 )
-target_link_libraries(skunkwork
+target_link_libraries(cubnature
     PRIVATE
     ${OPENGL_LIBRARIES}
     bass
@@ -60,7 +60,7 @@ target_link_libraries(skunkwork
     imgui
 )
 if (APPLE)
-    target_link_libraries(skunkwork
+    target_link_libraries(cubnature
         PRIVATE
         /usr/local/Cellar/libomp/8.0.0/lib/libomp.a
     )
@@ -68,7 +68,7 @@ endif()
 
 # Copy dynamic libraries to build folder after build
 # A cleaner way of doing this even with msvc's build structure?
-add_custom_command(TARGET skunkwork POST_BUILD
+add_custom_command(TARGET cubnature POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                            ${CMAKE_SOURCE_DIR}/ext/bass/lib
-                           $<TARGET_FILE_DIR:skunkwork>)
+                           $<TARGET_FILE_DIR:cubnature>)

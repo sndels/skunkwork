@@ -21,7 +21,7 @@ bool Window::init(int w, int h, const std::string& title)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create the window
-    _window = glfwCreateWindow(_w, _h, title.c_str(), NULL, NULL);
+    _window = glfwCreateWindow(_w, _h, title.c_str(), glfwGetPrimaryMonitor(), NULL);
     if (!_window) {
         glfwTerminate();
         return false;
