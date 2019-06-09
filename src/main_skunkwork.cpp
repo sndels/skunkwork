@@ -27,7 +27,7 @@ using namespace glm;
 // Comment out to disable autoplay without tcp-Rocket
 #define MUSIC_AUTOPLAY
 // Comment out to load sync from files
-//#define TCPROCKET
+#define TCPROCKET
 // Comment out to draw gui
 #define DRAW_GUI
 
@@ -71,7 +71,7 @@ static float plantSdf (const vec3& pos, const float time) {
 
 static float seaSdf(const vec3& pos, const float time) {
         const vec3 pos0 = pos * vec3(3);
-        return pos.y + 0.1 * cos(pos0.x + time) + 0.1 * cos(pos0.x * 3 + time) + 0.1 * sin(pos0.z + time);
+        return pos.y + 1 * cos(pos0.x + time) + 1 * cos(pos0.x * 3 + time) + 1 * sin(pos0.z + time);
 }
 
 #ifdef _WIN32
@@ -108,7 +108,7 @@ int main()
     // Set up audio
     std::string musicPath(RES_DIRECTORY);
     musicPath += "music/aawikko_0230_final.wav";
-    AudioStream::getInstance().init(musicPath, 175.0, 8);
+    AudioStream::getInstance().init(musicPath, 130.0, 8);
     int32_t streamHandle = AudioStream::getInstance().getStreamHandle();
 #endif // TCPROCKET || MUSIC_AUTOPLAY
 
@@ -204,21 +204,31 @@ int main()
         ImGui::End();
 #endif
 
-        mat4 modelToWorld = mat4(1);
-        mat3 normalToWorld = mat3(transpose(inverse(modelToWorld)));
+
+        /*
+        if (scene == 0 || scene == 1) {
+            // Scene cam setup
+        } else {
+
+        }
+        */
         mat4 worldToClip =
             perspective(45.f, window.width() / float(window.height()), 0.01f, 100.f) *
             lookAt(cameraPos, cameraTgt, vec3(0, 1, 0));
 
         triShader.bind(syncRow);
         glUniform1f(glGetUniformLocation(triShader._progID, "uTime"), rTime);
-        glUniformMatrix4fv(glGetUniformLocation(triShader._progID, "uModelToWorld"), 1, false, (GLfloat*) &modelToWorld);
-        glUniformMatrix3fv(glGetUniformLocation(triShader._progID, "uNormalToWorld"), 1, false, (GLfloat*) &normalToWorld);
         glUniformMatrix4fv(glGetUniformLocation(triShader._progID, "uWorldToClip"), 1, false, (GLfloat*) &worldToClip);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uEye"), 1, (GLfloat*) &cameraPos);
 
         /* Clouds */
+        //if (scene == 0 || scene == 1)
+        {
         vec3 lightDir = vec3(-1, 1, -1);
+        mat4 modelToWorld = mat4(1);
+        mat3 normalToWorld = mat3(transpose(inverse(modelToWorld)));
+        glUniformMatrix4fv(glGetUniformLocation(triShader._progID, "uModelToWorld"), 1, false, (GLfloat*) &modelToWorld);
+        glUniformMatrix3fv(glGetUniformLocation(triShader._progID, "uNormalToWorld"), 1, false, (GLfloat*) &normalToWorld);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uLightDir"),
                      1, (GLfloat*) &lightDir);
         vec3 additionalColor = vec3(0.1, 0.2, 0.7);
@@ -227,25 +237,40 @@ int main()
         vec3 color = vec3(1);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uColor"), 1, (GLfloat*) &color);
         cloudMarch.render();
+        }
 
         /* Sea */
-        lightDir = vec3(-1, -1, -1);
+        //if (scene == 1)
+        {
+        vec3 lightDir = vec3(-1, -1, -1);
+        mat4 modelToWorld = translate(vec3(0, -24, 0));
+        mat4 normalToWorld = mat3(transpose(inverse(modelToWorld)));
+        glUniformMatrix4fv(glGetUniformLocation(triShader._progID, "uModelToWorld"), 1, false, (GLfloat*) &modelToWorld);
+        glUniformMatrix3fv(glGetUniformLocation(triShader._progID, "uNormalToWorld"), 1, false, (GLfloat*) &normalToWorld);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uLightDir"),
                      1, (GLfloat*) &lightDir);
-        color = vec3(0.87, 0.62, 0);
+        vec3 color = vec3(0, 0, 1);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uColor"), 1, (GLfloat*) &color);
         seaMarch.render();
+        }
 
         /* Dunes */
-        lightDir = vec3(-1, -1, -1);
+        // if (scene == 2)
+        {
+        vec3 lightDir = vec3(-1, -1, -1);
+        mat4 modelToWorld = mat4(1);
+        mat3 normalToWorld = mat3(transpose(inverse(modelToWorld)));
+        glUniformMatrix4fv(glGetUniformLocation(triShader._progID, "uModelToWorld"), 1, false, (GLfloat*) &modelToWorld);
+        glUniformMatrix3fv(glGetUniformLocation(triShader._progID, "uNormalToWorld"), 1, false, (GLfloat*) &normalToWorld);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uLightDir"),
                      1, (GLfloat*) &lightDir);
-        color = vec3(0.87, 0.62, 0);
+        vec3 color = vec3(0.87, 0.62, 0);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uColor"), 1, (GLfloat*) &color);
         duneMarch.render();
         color = vec3(0, 0.87, 0.11);
         glUniform3fv(glGetUniformLocation(triShader._progID, "uColor"), 1, (GLfloat*) &color);
         plantMarch.render();
+        }
 
         sceneProf.endSample();
 
