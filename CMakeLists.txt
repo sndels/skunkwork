@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.9)
 
 project(skunkwork)
 
@@ -72,46 +72,3 @@ add_custom_command(TARGET skunkwork POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                            ${CMAKE_SOURCE_DIR}/ext/bass/lib
                            $<TARGET_FILE_DIR:skunkwork>)
-
-# "shadertoy" only, doesn't include audio or rocket support
-add_executable(skunktoy WIN32 ${SKUNKTOY_SOURCES})
-target_compile_features(skunktoy
-    PRIVATE
-    cxx_std_17
-)
-if (MSVC)
-    target_compile_options(skunktoy
-        PRIVATE
-        /Wall
-    )
-else()
-    target_compile_options(skunktoy
-        PRIVATE
-        -Wall
-        -pedantic
-    )
-endif()
-target_include_directories(skunktoy
-    PRIVATE
-    ${SKUNKWORK_INCLUDE_DIR}
-)
-if (APPLE)
-    target_include_directories(skunktoy
-        PRIVATE
-        /usr/local/Cellar/libomp/8.0.0/include
-    )
-endif()
-target_link_libraries(skunktoy
-    PRIVATE
-    ${OPENGL_LIBRARIES}
-    glfw
-    glm
-    libgl3w
-    imgui 
-)
-if (APPLE)
-    target_link_libraries(skunktoy
-        PRIVATE
-        /usr/local/Cellar/libomp/8.0.0/lib/libomp.a
-    )
-endif()
