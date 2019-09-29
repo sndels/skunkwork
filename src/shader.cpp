@@ -274,8 +274,9 @@ GLuint Shader::loadProgram(const std::string& vertPath, const std::string& fragP
         if (name.length() < 2 || name[0] != 'd' || !isupper(name[1]))
             continue;
 
-        // Add existing value if present
-        if (auto existing = _dynamicUniforms.find(name); existing != _dynamicUniforms.end()) {
+        // Add existing value if types match
+        if (auto existing = _dynamicUniforms.find(name);
+            existing != _dynamicUniforms.end() && existing->second.type == u.second.first) {
             newDynamics.insert(*existing);
             continue;
         }
