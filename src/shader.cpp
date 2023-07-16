@@ -301,7 +301,7 @@ GLuint Shader::loadProgram(const std::string& vertPath, const std::string& fragP
     _rocketUniforms = newRockets;
 #endif // ROCKET
 
-    printf("[shader] Shader %u loaded\n", progID);
+    printf("[shader] Shader %s loaded\n", fragPath.c_str());
 
     return progID;
 }
@@ -459,15 +459,9 @@ void Shader::printShaderLog(GLuint shader) const
                     }
                 }
 
-                // Print the file if it changed from last error
-                if (lastFile.empty() || lastFile.compare(files.top()) != 0) {
-                    printf("In file '%s'\n", files.top().c_str());
-                    lastFile = files.top();
-                }
-
-                // Insert the correct line number to error and print
-                errLine.erase(linePrefix.length(), lineNumEnd - linePrefix.length());
-                errLine.insert(linePrefix.length(), std::to_string(lines.top()));
+                // Insert the correct file:line_number to error and print
+                errLine.erase(0, lineNumEnd);
+                errLine.insert(0, files.top() + ':' +std::to_string(lines.top()));
             }
             printf("%s\n", errLine.c_str());
         }
