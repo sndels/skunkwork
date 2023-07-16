@@ -146,7 +146,8 @@
 
 // Sign function that doesn't return 0
 float sgn(float x) {
-	return (x<0)?-1:1;
+	// Sndels: Mesa 22.3, for some reason, wasn't happy with the return type being int
+	return (x<0)?-1.:1.;
 }
 
 vec2 sgn(vec2 v) {
