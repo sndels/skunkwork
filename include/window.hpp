@@ -2,7 +2,7 @@
 #define SKUNKWORK_WINDOW_HPP
 
 #include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
+#include <SDL.h>
 #include <string>
 
 class Window
@@ -17,7 +17,9 @@ public:
     Window operator=(const Window& other) = delete;
 
     bool open() const;
-    GLFWwindow* ptr() const;
+    void setClose();
+    SDL_Window* ptr() const;
+    SDL_GLContext ctx() const;
     int width() const;
     int height() const;
     bool drawGUI() const;
@@ -25,18 +27,16 @@ public:
     void startFrame();
     void endFrame() const;
 
-    static void errorCallback(int error, const char* description);
-    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-    static void cursorCallback(GLFWwindow* window, double xpos, double ypos);
-    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-    static void keyCallback(GLFWwindow* window, int32_t key, int32_t scancode, int32_t action, int32_t mods);
-    static void charCallback(GLFWwindow* window, unsigned int c);
-
 private:
-    GLFWwindow* _window;
-    int _w, _h;
-    bool _drawGUI;
+    void handleWindow(SDL_Event const& event);
+    void handleKey(SDL_Event const& event);
+
+    SDL_Window* _window{nullptr};
+    SDL_GLContext _context{nullptr};
+    int _w{0};
+    int _h{0};
+    bool _drawGUI{false};
+    bool _shouldClose{false};
 };
 
 #endif // SKUNKWORK_WINDOW_HPP

@@ -1,7 +1,10 @@
 #include "window.hpp"
 
+#include <cstdio>
+#include <SDL_video.h>
+#include <SDL_opengl.h>
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
+#include <imgui_impl_sdl.h>
 #include <stdio.h>
 
 bool Window::init(int w, int h, const std::string& title)
@@ -9,57 +12,67 @@ bool Window::init(int w, int h, const std::string& title)
     _w = w;
     _h = h;
     _drawGUI = true;
-    // Init GLFW-context
-    glfwSetErrorCallback(errorCallback);
-    if (!glfwInit())
-        return false;
+    GLenum err;
 
-    // Set desired context hints
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Create the window
-    _window = glfwCreateWindow(_w, _h, title.c_str(), NULL, NULL);
-    if (!_window) {
-        glfwTerminate();
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        fprintf(stderr, "Video init failed: %s\n", SDL_GetError());
         return false;
     }
-    glfwMakeContextCurrent(_window);
 
-    // Register callbacks, these will also handle calling ImGui's corresponding callbacks
-    glfwSetWindowUserPointer(_window, (void*)this);
-    glfwSetFramebufferSizeCallback(_window, framebufferSizeCallback);
-    glfwSetCursorPosCallback(_window, cursorCallback);
-    glfwSetMouseButtonCallback(_window, mouseButtonCallback);
-    glfwSetScrollCallback(_window, scrollCallback);
-    glfwSetKeyCallback(_window, keyCallback);
-    glfwSetCharCallback(_window, charCallback);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    // Set vsync on
-    glfwSwapInterval(1);
+    _window = SDL_CreateWindow( "skunkwork", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _w, _h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+    if (_window == nullptr)
+    {
+        fprintf(stderr, "Window create failed: %s\n", SDL_GetError());
+        goto fail;
+    }
+
+    _context = SDL_GL_CreateContext(_window);
+    if (_context == nullptr)
+    {
+        fprintf(stderr, "GL context create failed: %s\n", SDL_GetError());
+        goto fail;
+    }
+
+    if (SDL_GL_SetSwapInterval(1))
+    {
+        fprintf(stderr, "Vsync setup failed: %s\n", SDL_GetError());
+        goto fail;
+    }
 
     // Init GL
     gl3wInit();
     glClearColor(0.f, 0.f, 0.f, 1.f);
 
     // Check that GL is happy
-    GLenum err = glGetError();
+    err = glGetError();
     if(err != GL_NO_ERROR) {
-        glfwDestroyWindow(_window);
-        glfwTerminate();
         fprintf(stderr, "Error initializing GL!\n");
         fprintf(stderr, "Code: %d\n", err);
-        return false;
+        goto fail;
     }
+
     return true;
+
+fail:
+    SDL_GL_DeleteContext(_context);
+    SDL_DestroyWindow(_window);
+    SDL_Quit();
+    return false;
 }
 
 void Window::destroy()
 {
-    glfwDestroyWindow(_window);
-    glfwTerminate();
 }
 
 Window::Window(Window&& other) :
@@ -73,12 +86,22 @@ Window::Window(Window&& other) :
 
 bool Window::open() const
 {
-    return !glfwWindowShouldClose(_window);
+    return !_shouldClose;
 }
 
-GLFWwindow* Window::ptr() const
+void Window::setClose() 
+{
+    _shouldClose = true;
+}
+
+SDL_Window* Window::ptr() const
 {
     return _window;
+}
+
+SDL_GLContext Window::ctx() const
+{
+    return _context;
 }
 
 int Window::width() const
@@ -98,73 +121,59 @@ bool Window::drawGUI() const
 
 void Window::startFrame()
 {
-    glfwPollEvents();
+    SDL_Event event;
+    while(SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT:
+                _shouldClose = true;
+                break;
+            case SDL_KEYDOWN:
+                handleKey(event);
+                break;
+            case SDL_WINDOWEVENT:
+                handleWindow(event);
+                break;
+            default:
+                break;
+        }
+        ImGui_ImplSDL2_ProcessEvent(&event);
+    }
 }
 
 void Window::endFrame() const
 {
-    glfwSwapBuffers(_window);
+    SDL_GL_SwapWindow(_window);
 }
 
-void Window::errorCallback(int error, const char* description)
+void Window::handleWindow(SDL_Event const& event)
 {
-    fprintf(stderr, "GLFW error %d: %s\n", error, description);
+    switch (event.window.event) {
+        case SDL_WINDOWEVENT_RESIZED:
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+            _w = event.window.data1;
+            _h = event.window.data2;
+            glViewport(0, 0, _w, _h);
+            break;
+        default:
+            break;
+    }
 }
 
-void Window::framebufferSizeCallback(GLFWwindow* window, int width, int height)
+void Window::handleKey(SDL_Event const& event)
 {
-    Window* thisPtr = (Window*)glfwGetWindowUserPointer(window);
-    thisPtr->_w = width;
-    thisPtr->_h = height;
-    glViewport(0, 0, width, height);
-}
-
-void Window::cursorCallback(GLFWwindow*, double xpos, double ypos)
-{
-    (void) xpos;
-    (void) ypos;
-}
-
-void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    // ImGui should handle any events on top of its windows
-    if (ImGui::IsMouseHoveringAnyWindow())
-        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-    else
-        ;
-}
-
-void Window::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
-{
-    // ImGui should handle any events on top of its windows
-    if (ImGui::IsMouseHoveringAnyWindow())
-        ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-    else 
-        ;
-}
-
-void Window::keyCallback(GLFWwindow* window, int32_t key, int32_t scancode, int32_t action, int32_t mods)
-{
-    Window* thisPtr = (Window*)glfwGetWindowUserPointer(window);
     // Skip key events when e.g. editing an input field
     if (!ImGui::IsAnyItemActive()) {
-        if (action == GLFW_PRESS) {
-            switch (key) {
-            case GLFW_KEY_ESCAPE:
-                glfwSetWindowShouldClose(window, GLFW_TRUE);
-                break;
-            case GLFW_KEY_G:
-                thisPtr->_drawGUI = !thisPtr->_drawGUI;
-                break;
-            default: 
-                break;
+        if (event.key.state == SDL_PRESSED) {
+            switch (event.key.keysym.sym) {
+                case SDLK_ESCAPE:
+                    _shouldClose= true;
+                    break;
+                case SDLK_g:
+                    _drawGUI = !_drawGUI;
+                    break;
+                default:
+                    break;
             }
         }
     }
-    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
-}
-
-void Window::charCallback(GLFWwindow* window, unsigned int c)
-{
-    ImGui_ImplGlfw_CharCallback(window, c);
 }

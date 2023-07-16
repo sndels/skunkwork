@@ -1,8 +1,3 @@
-#ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-#endif // _WIN32
-
 #include <cmath>
 #include <GL/gl3w.h>
 #include <sync.h>
@@ -31,25 +26,15 @@ static struct sync_cb audioSync = {
 };
 #endif // TCPROCKET
 
-#ifdef _WIN32
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
-{
-    (void) hInstance;
-    (void) hPrevInstance;
-    (void) lpCmdLine;
-    (void) nCmdShow;
-#else
 int main()
 {
-#endif // _WIN32
-    // Init GLFW-context
     Window window;
     if (!window.init(1280, 720, "skunkwork"))
         return -1;
 
     // Setup imgui
     GUI gui;
-    gui.init(window.ptr());
+    gui.init(window.ptr(), window.ctx());
 
     Quad q;
 
@@ -137,7 +122,8 @@ int main()
         window.endFrame();
 
 #ifdef MUSIC_AUTOPLAY
-        if (!AudioStream::getInstance().isPlaying()) glfwSetWindowShouldClose(windowPtr, GLFW_TRUE);
+        if (!AudioStream::getInstance().isPlaying())
+            _window.setClose();
 #endif // MUSIC_AUTOPLAY
     }
 

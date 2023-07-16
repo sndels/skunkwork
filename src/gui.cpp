@@ -1,7 +1,7 @@
 #include "gui.hpp"
 
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
+#include <imgui_impl_sdl.h>
 #include <imgui_impl_opengl3.h>
 
 #include "log.hpp"
@@ -22,11 +22,12 @@ GUI::GUI() :
     _sliderTime(0.f)
 { }
 
-void GUI::init(GLFWwindow* window)
+void GUI::init(SDL_Window* window, SDL_GLContext context)
 {
+    _window = window;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(window, false);
+    ImGui_ImplSDL2_InitForOpenGL(_window, context);
     ImGui_ImplOpenGL3_Init("#version 410");
     ImGui::StyleColorsDark();
 }
@@ -34,7 +35,7 @@ void GUI::init(GLFWwindow* window)
 void GUI::destroy()
 {
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 }
 
@@ -54,9 +55,11 @@ void GUI::startFrame(
     const std::vector<std::pair<std::string, const GpuProfiler*>>& timers
 )
 {
+    assert(_window != nullptr);
+
     // Start ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
+    ImGui_ImplSDL2_NewFrame(_window);
     ImGui::NewFrame();
 
     // Uniform editor

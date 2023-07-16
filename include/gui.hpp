@@ -3,7 +3,7 @@
 #define SKUNKWORK_GUI_HPP
 
 #include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
+#include <SDL.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -16,7 +16,7 @@ class GUI
 public:
     GUI();
 
-    void init(GLFWwindow* window);
+    void init(SDL_Window* window, SDL_GLContext context);
     void destroy();
     bool useSliderTime() const;
     float sliderTime() const;
@@ -27,8 +27,9 @@ public:
     void endFrame();
 
 private:
-    bool _useSliderTime;
-    float _sliderTime;
+    SDL_Window* _window{nullptr};
+    bool _useSliderTime{false};
+    float _sliderTime{0.f};
 };
 
 #endif // SKUNKWORK_GUI_HPP
