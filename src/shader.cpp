@@ -149,6 +149,8 @@ void Shader::setVendor()
         _vendor = Vendor::Nvidia;
     else if (strcmp(vendor, "Intel Inc.") == 0)
         _vendor = Vendor::Intel;
+    else if (strcmp(vendor, "AMD") == 0)
+        _vendor = Vendor::AMD;
     else {
         ADD_LOG("[shader] Include aware error parsing not supported for '%s'\n", vendor);
         _vendor = Vendor::NotSupported;
@@ -414,6 +416,9 @@ void Shader::printShaderLog(GLuint shader) const
         } else if (_vendor == Vendor::Intel) {
             linePrefix = "ERROR: 0:";
             lineNumCutoff = ':';
+        } else if (_vendor == Vendor::AMD) {
+            linePrefix = "0:";
+            lineNumCutoff = '(';
         } else {
             ADD_LOG("[shader] Unimplemented vendor parsing\n");
             ADD_LOG("%s\n", errorLog);

@@ -26,6 +26,7 @@ class Shader
     enum class Vendor {
         Nvidia,
         Intel,
+        AMD,
         NotSupported
     };
 
