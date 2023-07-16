@@ -1,6 +1,8 @@
 #ifndef AUDIOSTREAM_HPP
 #define AUDIOSTREAM_HPP
 
+#include <SDL_mixer.h>
+
 #include <string>
 
 class AudioStream
@@ -18,12 +20,13 @@ public:
     void operator=(AudioStream const&) = delete;
 
     // Static interface for rocket
-    static void pauseStream(void* stream, int32_t flag);
-    static void setStreamRow(void* stream, int32_t row);
-    static int32_t isStreamPlaying(void* stream);
+    static void pauseStream(void* data, int32_t flag);
+    static void setStreamRow(void* data, int32_t row);
+    static int32_t isStreamPlaying(void* data);
 
-    void init(const std::string& filePath, double bpm, int32_t rpb);
-    int32_t getStreamHandle();
+    bool init(const std::string& filePath, double bpm, int32_t rpb);
+    void destroy();
+    Mix_Music* getMusic() const;
     void play();
     bool isPlaying();
     void pause();
@@ -32,11 +35,11 @@ public:
     void setRow(int32_t row);
 
 private:
-    AudioStream();
+    AudioStream() = default;
     ~AudioStream();
 
-    int32_t _streamHandle;
-    bool    _shouldRestart;
+    Mix_Music* _music{nullptr};
+    bool    _shouldRestart{false};
 
 };
 

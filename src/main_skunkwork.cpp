@@ -13,9 +13,9 @@
 #include "window.hpp"
 
 // Comment out to disable autoplay without tcp-Rocket
-//#define MUSIC_AUTOPLAY
+// #define MUSIC_AUTOPLAY
 // Comment out to load sync from files
-//#define TCPROCKET
+// #define TCPROCKET
 
 #ifdef TCPROCKET
 //Set up audio callbacks for rocket
@@ -41,9 +41,13 @@ int main()
 #if (defined(TCPROCKET) || defined(MUSIC_AUTOPLAY))
     // Set up audio
     std::string musicPath(RES_DIRECTORY);
-    musicPath += "music/illegal_af.mp3";
-    AudioStream::getInstance().init(musicPath, 175.0, 8);
-    int32_t streamHandle = AudioStream::getInstance().getStreamHandle();
+    musicPath += "illegal_af.wav";
+    if (!AudioStream::getInstance().init(musicPath, 175.0, 8))
+    {
+        gui.destroy();
+        window.destroy();
+        exit(EXIT_FAILURE);
+    }
 #endif // TCPROCKET || MUSIC_AUTOPLAY
 
     // Set up rocket
@@ -87,7 +91,7 @@ int main()
 #ifdef TCPROCKET
         // Try re-connecting to rocket-server if update fails
         // Drops all the frames, if trying to connect on windows
-        if (sync_update(rocket, (int)floor(syncRow), &audioSync, (void *)&streamHandle))
+        if (sync_update(rocket, (int)floor(syncRow), &audioSync, AudioStream::getInstance().getMusic()))
             sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT);
 #endif // TCPROCKET
 
@@ -123,7 +127,7 @@ int main()
 
 #ifdef MUSIC_AUTOPLAY
         if (!AudioStream::getInstance().isPlaying())
-            _window.setClose();
+            window.setClose();
 #endif // MUSIC_AUTOPLAY
     }
 
@@ -133,6 +137,7 @@ int main()
     // Release resources
     sync_destroy_device(rocket);
 
+    AudioStream::getInstance().destroy();
     gui.destroy();
     window.destroy();
     exit(EXIT_SUCCESS);

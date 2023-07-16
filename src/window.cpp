@@ -15,8 +15,8 @@ bool Window::init(int w, int h, const std::string& title)
     GLenum err;
 
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "Video init failed: %s\n", SDL_GetError());
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+        fprintf(stderr, "SDL init failed: %s\n", SDL_GetError());
         return false;
     }
 

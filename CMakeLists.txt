@@ -45,20 +45,13 @@ target_include_directories(skunkwork
 target_link_libraries(skunkwork
     PRIVATE
     ${OPENGL_LIBRARIES}
-    bass
     glm
     libgl3w
     librocket
     imgui
-    SDL2-static
+    SDL2
+    SDL2_mixer
 )
-
-# Copy dynamic libraries to build folder after build
-# A cleaner way of doing this even with msvc's build structure?
-add_custom_command(TARGET skunkwork POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/ext/bass/lib
-    $<TARGET_FILE_DIR:skunkwork>)
 
 # "shadertoy" only, doesn't include audio or rocket support
 add_executable(skunktoy ${SKUNKTOY_SOURCES})
@@ -94,5 +87,5 @@ target_link_libraries(skunktoy
     glm
     libgl3w
     imgui
-    SDL2-static
+    SDL2
 )

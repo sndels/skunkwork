@@ -1,96 +1,117 @@
 #include "audioStream.hpp"
 
-#include <bass.h>
-
 #include <cstdio>
 
 namespace {
     static int32_t ROW_RATE = 0;
 }
 
-void AudioStream::pauseStream(void* stream, int32_t flag)
+void AudioStream::pauseStream(void* data, int32_t flag)
 {
-    int32_t streamHandle = *(int32_t*)stream;
-    if (flag) BASS_ChannelPause(streamHandle);
-    else BASS_ChannelPlay(streamHandle, false);
+    if (flag)
+        Mix_PauseMusic();
+    else if (Mix_PlayingMusic())
+        Mix_ResumeMusic();
+    else {
+        Mix_Music* music = (Mix_Music*)data;
+        Mix_PlayMusic(music, 0);
+    }
 }
 
-void AudioStream::setStreamRow(void* stream, int32_t row)
+void AudioStream::setStreamRow(void* /*data*/, int32_t row)
 {
-    int32_t streamHandle = *(int32_t*)stream;
-    uint64_t pos = BASS_ChannelSeconds2Bytes(streamHandle, row / ROW_RATE);
-    BASS_ChannelSetPosition(streamHandle, pos, BASS_POS_BYTE);
+    double const timeS = row / (double)ROW_RATE;
+    Mix_SetMusicPosition(timeS);
 }
 
-int32_t AudioStream::isStreamPlaying(void* stream)
+int32_t AudioStream::isStreamPlaying(void* /*data*/)
 {
-    int32_t streamHandle = *(int32_t*)stream;
-    return BASS_ChannelIsActive(streamHandle) == BASS_ACTIVE_PLAYING;
+    return Mix_PlayingMusic();
 }
 
-int32_t AudioStream::getStreamHandle()
+bool AudioStream::init(const std::string& filePath, double bpm, int32_t rpb)
 {
-    return _streamHandle;
+    int audio_rate = 44100;
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+    uint16_t audio_format = AUDIO_S16LSB;
+#else
+    uint16_t audio_format = AUDIO_S16MSB;
+#endif
+    int audio_channels = 2;
+
+    if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, 4096) < 0)
+    {
+        fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+        return false;
+    }
+
+    Mix_QuerySpec(&audio_rate, &audio_format, &audio_channels);
+    printf("Opened audio at %d Hz %d bit%s %s\n", audio_rate,
+        (audio_format&0xFF),
+        (SDL_AUDIO_ISFLOAT(audio_format) ? " (float)" : ""),
+        (audio_channels > 2) ? "surround" :
+        (audio_channels > 1) ? "stereo" : "mono");
+
+    _music = Mix_LoadMUS(filePath.c_str());
+    if (_music == nullptr) {
+        fprintf(stderr, "Failed to open music from %s\n", filePath.c_str());
+        fprintf(stderr, "%s\n", SDL_GetError());
+        Mix_CloseAudio();
+        return false;
+    }
+
+    ROW_RATE = bpm / 60 * rpb;
+    _shouldRestart = false;
+    return true;
 }
 
-void AudioStream::init(const std::string& filePath, double bpm, int32_t rpb)
+void AudioStream::destroy()
 {
-    if (!BASS_StreamFree(_streamHandle)) {
-        _shouldRestart = false;
-        ROW_RATE = bpm / 60 * rpb;
-        if (BASS_Init(-1, 44100, 0, 0, 0)) {
-            _streamHandle = BASS_StreamCreateFile(false, filePath.c_str(), 0, 0,
-                                                BASS_STREAM_PRESCAN);
-            if (!_streamHandle)
-                printf("[audio] Error opening stream from '%s'\n", filePath.c_str());
-        } else
-            printf("[audio] Failed to init BASS\n");
-    } else
-        printf("[audio] Failed to free stream\n");
+    Mix_CloseAudio();
+}
+
+Mix_Music* AudioStream::getMusic() const
+{
+    return _music;
 }
 
 void AudioStream::play()
 {
-    BASS_Start();
-    BASS_ChannelPlay(_streamHandle, _shouldRestart);
+    if (_shouldRestart || !Mix_PausedMusic())
+        Mix_PlayMusic(_music, 0);
+    else
+        Mix_ResumeMusic();
     _shouldRestart = false;
 }
 
 bool AudioStream::isPlaying() {
-    return BASS_ChannelIsActive(_streamHandle) == BASS_ACTIVE_PLAYING;
+    return Mix_PlayingMusic() == 1;
 }
 
 void AudioStream::pause()
 {
-    BASS_ChannelPause(_streamHandle);
+    Mix_PauseMusic();
 }
 
 void AudioStream::stop()
 {
-    BASS_ChannelPause(_streamHandle);
+    Mix_PauseMusic();
     _shouldRestart = true;
 }
 
 double AudioStream::getRow() const
 {
-    int64_t pos = BASS_ChannelGetPosition(_streamHandle, BASS_POS_BYTE);
-    double time = BASS_ChannelBytes2Seconds(_streamHandle, pos);
-    return time * ROW_RATE;
+    double const timeS = Mix_GetMusicPosition(_music);
+    return timeS * ROW_RATE;
 }
 
 void AudioStream::setRow(int32_t row)
 {
-    int64_t pos = BASS_ChannelSeconds2Bytes(_streamHandle, row / ROW_RATE);
-    BASS_ChannelSetPosition(_streamHandle, pos, BASS_POS_BYTE);
+    double const timeS = row / (double)ROW_RATE;
+    Mix_SetMusicPosition(timeS);
 }
-
-AudioStream::AudioStream() :
-    _streamHandle(0),
-    _shouldRestart(false)
-{ }
 
 AudioStream::~AudioStream()
 {
-    BASS_StreamFree(_streamHandle);
-    BASS_Free();
+    destroy();
 }

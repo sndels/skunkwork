@@ -20,10 +20,10 @@ A lightweight framework for fooling around with GLSL-shaders, mainly designed fo
 I have used [emoon's](https://github.com/emoon/rocket) as my Rocket-server.
 
 ## Build targets
-There are two builds: `skunkwork` holds all the bells and whistles while `skunktoy` drops Rocket and BASS integration for more minimalist shader tinkering.
+There are two builds: `skunkwork` holds all the bells and whistles while `skunktoy` drops Rocket and audio integration for more minimalist shader tinkering.
 
 ## Dependencies
-Building requires OpenGL dev libraries. [BASS](http://www.un4seen.com/bass.html) is included as a dynamic library under its non-commercial license, while [GLFW3](http://www.glfw.org), [dear imgui](https://github.com/ocornut/imgui), [Rocket](https://github.com/rocket/rocket) and [gl3w](https://github.com/sndels/libgl3w) are submodules with their respective licenses.
+Building requires SDL dependencies and on linux `libasound2-dev`. [SDL](https://github.com/libsdl-org/SDL.git), [SDL_mixer](https://github.com/libsdl-org/SDL_mixer), [dear imgui](https://github.com/ocornut/imgui), [Rocket](https://github.com/rocket/rocket) and [gl3w](https://github.com/sndels/libgl3w) are submodules with their respective licenses.
 
 ## Building
 The CMake-build should work™ on OSX, Linux and Windows 10 (Visual Studio 2017) using cmake.
