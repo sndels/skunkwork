@@ -1,6 +1,6 @@
 #include "texture.hpp"
 
-#include "log.hpp"
+#include <cstdio>
 
 Texture::Texture(uint32_t w, uint32_t h, TextureParams params) :
     _texID(0),
@@ -19,8 +19,8 @@ Texture::Texture(uint32_t w, uint32_t h, TextureParams params) :
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
-        ADD_LOG("[texture] Error creating texture\n");
-        ADD_LOG("[texture] Error code: %u\n", error);
+        printf("[texture] Error creating texture\n");
+        printf("[texture] Error code: %u\n", error);
     }
 }
 
@@ -57,8 +57,8 @@ void Texture::resize(uint32_t w, uint32_t h)
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
-        ADD_LOG("[texture] Error resizing texture\n");
-        ADD_LOG("[texture] Error code: %u", error);
+        printf("[texture] Error resizing texture\n");
+        printf("[texture] Error code: %u", error);
     }
 }
 

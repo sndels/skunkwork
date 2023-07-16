@@ -4,7 +4,7 @@
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_opengl3.h>
 
-#include "log.hpp"
+#include <cstdio>
 
 namespace {
     float LOGW = 690.f;
@@ -66,9 +66,11 @@ void GUI::startFrame(
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiSetCond_Once);
     ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
     ImGui::SetNextWindowCollapsed(true, ImGuiSetCond_Once);
-    ImGui::Begin("Uniform Editor");
+    ImGui::Begin("Skunkwork GUI");
+
     ImGui::Checkbox("##Use slider time", &_useSliderTime);
     ImGui::SameLine(); ImGui::DragFloat("uTime", &_sliderTime, 0.01f);
+
     for (auto& e : uniforms) {
         std::string name = e.first;
         Uniform& uniform = e.second;
@@ -90,21 +92,15 @@ void GUI::startFrame(
             ImGui::SameLine(); ImGui::DragFloat3(name.c_str(), uniform.value, 0.01f);
             break;
         default:
-            ADD_LOG("[gui] Unknown dynamic uniform type\n");
+            printf("[gui] Unknown dynamic uniform type\n");
             break;
         }
     }
-    ImGui::End();
 
-    // Log
-    ImGui::SetNextWindowSize(ImVec2(LOGW, LOGH), ImGuiSetCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(LOGM, windowHeight - LOGH - LOGM), ImGuiSetCond_Always);
-    ImGui::Begin("Log", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
     ImGui::Text("Frame: %.1f", 1000.f / ImGui::GetIO().Framerate);
     for (auto& t : timers) {
         ImGui::SameLine(); ImGui::Text("%s: %.1f", t.first.c_str(), t.second->getAvg());
     }
-    GUILog::draw();
 
     ImGui::End();
 }

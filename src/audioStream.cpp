@@ -2,7 +2,7 @@
 
 #include <bass.h>
 
-#include "log.hpp"
+#include <cstdio>
 
 namespace {
     static int32_t ROW_RATE = 0;
@@ -42,11 +42,11 @@ void AudioStream::init(const std::string& filePath, double bpm, int32_t rpb)
             _streamHandle = BASS_StreamCreateFile(false, filePath.c_str(), 0, 0,
                                                 BASS_STREAM_PRESCAN);
             if (!_streamHandle)
-                ADD_LOG("[audio] Error opening stream from '%s'\n", filePath.c_str());
+                printf("[audio] Error opening stream from '%s'\n", filePath.c_str());
         } else
-            ADD_LOG("[audio] Failed to init BASS\n");
+            printf("[audio] Failed to init BASS\n");
     } else
-        ADD_LOG("[audio] Failed to free stream\n");
+        printf("[audio] Failed to free stream\n");
 }
 
 void AudioStream::play()

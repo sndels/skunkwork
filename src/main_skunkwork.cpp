@@ -6,7 +6,7 @@
 #include "audioStream.hpp"
 #include "gpuProfiler.hpp"
 #include "gui.hpp"
-#include "log.hpp"
+#include <cstdio>
 #include "quad.hpp"
 #include "shader.hpp"
 #include "timer.hpp"
@@ -49,7 +49,7 @@ int main()
     // Set up rocket
     sync_device *rocket = sync_create_device("sync");
     if (!rocket)
-        ADD_LOG("[rocket] Failed to create device\n");
+        printf("[rocket] Failed to create device\n");
 
     // Set up scene
     std::string vertPath(RES_DIRECTORY);
@@ -62,7 +62,7 @@ int main()
     // Try connecting to rocket-server
     int rocketConnected = sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT) == 0;
     if (!rocketConnected)
-        ADD_LOG("[rocket] Failed to connect to server\n");
+        printf("[rocket] Failed to connect to server\n");
 #endif // TCPROCKET
 
     // Init rocket tracks here

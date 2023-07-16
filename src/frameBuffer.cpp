@@ -1,6 +1,6 @@
 #include "frameBuffer.hpp"
 
-#include "log.hpp"
+#include <cstdio>
 
 FrameBuffer::FrameBuffer(uint32_t w, uint32_t h, const std::vector<TextureParams>& texParams,
                          GLenum depthFormat, GLenum depthAttachment) :
@@ -44,8 +44,8 @@ FrameBuffer::FrameBuffer(uint32_t w, uint32_t h, const std::vector<TextureParams
 
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        ADD_LOG("[framebuffer] Init failed\n");
-        ADD_LOG("[framebuffer] Status: %u\n", status);
+        printf("[framebuffer] Init failed\n");
+        printf("[framebuffer] Status: %u\n", status);
     }
 }
 
