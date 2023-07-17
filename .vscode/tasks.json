@@ -1,0 +1,109 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Ninja (Debug)",
+            "type": "shell",
+            "dependsOn": [
+                "cmake ninja debug"
+            ],
+            "command": "ninja",
+            "args": [],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "never"
+            },
+            "options": {
+                "cwd": "${workspaceRoot}/build",
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Ninja (Distribute)",
+            "type": "shell",
+            "dependsOn": [
+                "resources distribute",
+                "cmake ninja distribute"
+            ],
+            "command": "ninja",
+            "args": [
+                "install"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "never"
+            },
+            "options": {
+                "cwd": "${workspaceRoot}/build",
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "resources distribute",
+            "type": "shell",
+            "dependsOn":[
+                "cmake ninja distribute"
+            ],
+            "command": "mkdir",
+            "args": [
+                "-p",
+                "build/skunkwork_dist",
+                "&&",
+                "cp",
+                "-r",
+                "res",
+                "build/skunkwork_dist/"
+            ],
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "cmake ninja distribute",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-B",
+                "build",
+                "-G",
+                "Ninja",
+                "-DDISTRIBUTE_DEMO=1"
+            ],
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "cmake ninja debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-DCMAKE_BUILD_TYPE=Debug",
+                // Ninja color output
+                "-DCMAKE_CXX_FLAGS=-fdiagnostics-color=always",
+                "-G",
+                "Ninja",
+                "-B",
+                "build",
+            ],
+            "options": {
+                "env": {
+                    "CC": "clang",
+                    "CXX": "clang++",
+                }
+            },
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            }
+        }
+    ]
+}
