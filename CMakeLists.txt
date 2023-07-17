@@ -3,7 +3,20 @@ cmake_minimum_required(VERSION 3.4)
 project(skunkwork)
 
 # Get built dynamic libs next to the exe
+option(DISTRIBUTE_DEMO "Compile distributable" OFF)
+
+if (DISTRIBUTE_DEMO)
+    # Set relative paths for shared libraries
+    set(CMAKE_INSTALL_RPATH $ORIGIN)
+    # Set relative path to distributable res directory
+    add_definitions(-DRES_DIRECTORY="./res/")
+else()
+    # Set absolute path to res directory
+    add_definitions(-DRES_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/res/")
+endif()
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # Set up external dependencies
 find_package(OpenGL REQUIRED)
@@ -12,10 +25,6 @@ find_package(OpenGL REQUIRED)
 add_subdirectory(ext)
 add_subdirectory(include)
 add_subdirectory(src)
-
-# Set absolute path to res directory
-add_definitions(-DRES_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/res/")
-
 
 # Set up project targets
 add_executable(skunkwork ${SKUNKWORK_SOURCES})
@@ -52,6 +61,20 @@ target_link_libraries(skunkwork
     SDL2
     SDL2_mixer
 )
+
+if(DISTRIBUTE_DEMO)
+    # Prevent SDL build symlinks, we want the raw file for this to be portable
+    set_property(TARGET SDL2 PROPERTY VERSION)
+    set_property(TARGET SDL2 PROPERTY SOVERSION)
+    set_property(TARGET SDL2_mixer PROPERTY VERSION)
+    set_property(TARGET SDL2_mixer PROPERTY SOVERSION)
+
+    install(TARGETS skunkwork SDL2 SDL2_mixer
+        RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/skunkwork_dist
+        LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/skunkwork_dist
+        ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/skunkwork_dist
+    )
+endif()
 
 # "shadertoy" only, doesn't include audio or rocket support
 add_executable(skunktoy ${SKUNKTOY_SOURCES})
