@@ -1,0 +1,6 @@
+- Namespaces for shader dynamic uniforms
+  - Should be able to use same names for custom stuff
+- Effect management/sync
+  - std::vector<Shader>, rocket tracks
+- Song scrubbing without rocket
+- Song FFT shader input
