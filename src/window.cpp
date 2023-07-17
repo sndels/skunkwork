@@ -30,7 +30,7 @@ bool Window::init(int w, int h, const std::string& title)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    _window = SDL_CreateWindow( "skunkwork", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _w, _h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+    _window = SDL_CreateWindow( "skunkwork", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _w, _h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE );
     if (_window == nullptr)
     {
         fprintf(stderr, "Window create failed: %s\n", SDL_GetError());
@@ -119,8 +119,10 @@ bool Window::drawGUI() const
     return _drawGUI;
 }
 
-void Window::startFrame()
+bool Window::startFrame()
 {
+    bool resized = false;
+
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -131,13 +133,15 @@ void Window::startFrame()
                 handleKey(event);
                 break;
             case SDL_WINDOWEVENT:
-                handleWindow(event);
+                resized |= handleWindow(event);
                 break;
             default:
                 break;
         }
         ImGui_ImplSDL2_ProcessEvent(&event);
     }
+
+    return resized;
 }
 
 void Window::endFrame() const
@@ -145,18 +149,23 @@ void Window::endFrame() const
     SDL_GL_SwapWindow(_window);
 }
 
-void Window::handleWindow(SDL_Event const& event)
+bool Window::handleWindow(SDL_Event const& event)
 {
+    bool resized = false;
+
     switch (event.window.event) {
         case SDL_WINDOWEVENT_RESIZED:
         case SDL_WINDOWEVENT_SIZE_CHANGED:
             _w = event.window.data1;
             _h = event.window.data2;
             glViewport(0, 0, _w, _h);
+            resized = true;
             break;
         default:
             break;
     }
+
+    return resized;
 }
 
 void Window::handleKey(SDL_Event const& event)

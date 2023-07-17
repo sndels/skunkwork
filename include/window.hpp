@@ -24,11 +24,12 @@ public:
     int height() const;
     bool drawGUI() const;
 
-    void startFrame();
+    // Returns true if backbuffer was resized
+    bool startFrame();
     void endFrame() const;
 
 private:
-    void handleWindow(SDL_Event const& event);
+    bool handleWindow(SDL_Event const& event);
     void handleKey(SDL_Event const& event);
 
     SDL_Window* _window{nullptr};
