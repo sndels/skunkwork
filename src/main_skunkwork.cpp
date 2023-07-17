@@ -9,6 +9,7 @@
 #include <cstdio>
 #include "quad.hpp"
 #include "shader.hpp"
+#include "frameBuffer.hpp"
 #include "timer.hpp"
 #include "window.hpp"
 
@@ -26,10 +27,13 @@ static struct sync_cb audioSync = {
 };
 #endif // TCPROCKET
 
+#define XRES 1920
+#define YRES 1080
+
 int main()
 {
     Window window;
-    if (!window.init(1280, 720, "skunkwork"))
+    if (!window.init(XRES, YRES, "skunkwork"))
         return -1;
 
     // Setup imgui
@@ -58,9 +62,15 @@ int main()
     // Set up scene
     std::string vertPath(RES_DIRECTORY);
     vertPath += "shader/basic_vert.glsl";
-    std::string fragPath(RES_DIRECTORY);
-    fragPath += "shader/basic_frag.glsl";
-    Shader shader("Scene", rocket, vertPath, fragPath);
+    std::string basicFragPath(RES_DIRECTORY);
+    basicFragPath += "shader/basic_frag.glsl";
+    std::string rayMarchingFragPath(RES_DIRECTORY);
+    rayMarchingFragPath += "shader/ray_marching_frag.glsl";
+    std::string compositeFragPath(RES_DIRECTORY);
+    compositeFragPath += "shader/composite_frag.glsl";
+    Shader basicShader("Scene", rocket, vertPath, basicFragPath);
+    Shader rayMarchingShader("Scene", rocket, vertPath, rayMarchingFragPath);
+    Shader compositeShader("Composite", rocket, vertPath, compositeFragPath);
 
 #ifdef TCPROCKET
     // Try connecting to rocket-server
@@ -73,9 +83,25 @@ int main()
 
     Timer reloadTime;
     Timer globalTime;
-    GpuProfiler sceneProf(5);
-    std::vector<std::pair<std::string, const GpuProfiler*>> profilers = 
-        {{"Scene", &sceneProf}};
+    GpuProfiler scenePingProf(5);
+    GpuProfiler scenePongProf(5);
+    GpuProfiler compositeProf(5);
+    std::vector<std::pair<std::string, const GpuProfiler*>> profilers = {
+            {"ScenePing", &scenePingProf},
+            {"ScenePong", &scenePingProf},
+            {"Composite", &compositeProf}
+    };
+
+    TextureParams rgba16fParams = {GL_RGBA16F, GL_RGBA, GL_FLOAT,
+                                  GL_LINEAR, GL_LINEAR,
+                                  GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER};
+
+
+    // Generate framebuffer for main rendering
+    std::vector<TextureParams> sceneTexParams({rgba16fParams});
+
+    FrameBuffer scenePingFbo(XRES, YRES, sceneTexParams);
+    FrameBuffer scenePongFbo(XRES, YRES, sceneTexParams);
 
 #ifdef MUSIC_AUTOPLAY
     AudioStream::getInstance().play();
@@ -83,7 +109,12 @@ int main()
 
     // Run the main loop
     while (window.open()) {
-        window.startFrame();
+        bool const resized = window.startFrame();
+
+        if (resized) {
+            scenePingFbo.resize(window.width(), window.height());
+            scenePongFbo.resize(window.width(), window.height());
+        }
 
         // Sync
         double syncRow = AudioStream::getInstance().getRow();
@@ -96,13 +127,18 @@ int main()
 #endif // TCPROCKET
 
         if (window.drawGUI())
-            gui.startFrame(window.height(), shader.dynamicUniforms(), profilers);
+        {
+            // TODO: Multiple passes' uniforms in UI
+            gui.startFrame(window.height(), basicShader.dynamicUniforms(), profilers);
+        }   
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Try reloading the shader every 0.5s
         if (reloadTime.getSeconds() > 0.5f) {
-            shader.reload();
+            basicShader.reload();
+            rayMarchingShader.reload();
+            compositeShader.reload();
             reloadTime.reset();
         }
 
@@ -110,15 +146,41 @@ int main()
         if (gui.useSliderTime())
             globalTime.reset();
 
-        sceneProf.startSample();
-        shader.bind(syncRow);
-        shader.setFloat(
+        scenePingProf.startSample();
+        basicShader.bind(syncRow);
+        scenePingFbo.bindWrite();
+        basicShader.setFloat(
             "uTime",
             gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
         );
-        shader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
+        basicShader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
         q.render();
-        sceneProf.endSample();
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        scenePingProf.endSample();
+
+        scenePongProf.startSample();
+        rayMarchingShader.bind(syncRow);
+        scenePongFbo.bindWrite();
+        rayMarchingShader.setFloat(
+            "uTime",
+            gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
+        );
+        rayMarchingShader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
+        q.render();
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        scenePongProf.endSample();
+
+        compositeProf.startSample();
+        compositeShader.bind(syncRow);
+        compositeShader.setFloat(
+            "uTime",
+            gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
+        );
+        compositeShader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
+        scenePingFbo.bindRead(0, GL_TEXTURE0, compositeShader.getUniformLocation("uScenePingColorDepth"));
+        scenePongFbo.bindRead(0, GL_TEXTURE1, compositeShader.getUniformLocation("uScenePongColorDepth"));
+        q.render();
+        compositeProf.endSample();
 
         if (window.drawGUI())
             gui.endFrame();
