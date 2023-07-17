@@ -142,6 +142,14 @@ void Shader::setVec2(const std::string& name, GLfloat x, GLfloat y)
     setUniform(name, {UniformType::Vec2, {x, y, 0.f}});
 }
 
+GLint Shader::getUniformLocation(const std::string& name) const
+{
+    GLint uniformLocation = glGetUniformLocation(_progID, name.c_str());
+    if (uniformLocation == -1) 
+        printf("[shader] %s is not a valid shader variable\n", name.c_str());
+    return uniformLocation;
+}
+
 void Shader::setVendor()
 {
     const char* vendor = (const char*) glGetString(GL_VENDOR);
