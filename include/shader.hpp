@@ -35,8 +35,8 @@ public:
     Shader(const std::string& name, sync_device* rocket, const std::string& vertPath,
            const std::string& fragPath, const std::string& geomPath = "");
 #else
-    Shader(const std::string& vertPath, const std::string& fragPath,
-           const std::string& geomPath = "");
+    Shader(const std::string& name, const std::string& vertPath,
+           const std::string& fragPath, const std::string& geomPath = "");
 #endif // ROCKET
 
     ~Shader();
@@ -55,6 +55,7 @@ public:
     void setVec2(const std::string& name, GLfloat x, GLfloat y);
     GLint getUniformLocation(const std::string& name) const;
     std::unordered_map<std::string, Uniform>& dynamicUniforms();
+    const std::string &name() const;
 
 private:
     void setVendor();
@@ -77,8 +78,8 @@ private:
     std::vector<std::vector<time_t> > _fileMods;
     std::unordered_map<std::string, std::pair<UniformType, GLint>> _uniforms;
     std::unordered_map<std::string, Uniform> _dynamicUniforms;
-#ifdef ROCKET
     std::string _name;
+#ifdef ROCKET
     sync_device* _rocket;
     std::unordered_map<std::string, const sync_track*> _rocketUniforms;
 #endif // ROCKET

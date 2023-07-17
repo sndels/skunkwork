@@ -51,7 +51,7 @@ float GUI::sliderTime() const
 
 void GUI::startFrame(
     int windowHeight,
-    std::unordered_map<std::string, Uniform>& uniforms,
+    std::vector<Shader*> const& shaders,
     const std::vector<std::pair<std::string, const GpuProfiler*>>& timers
 )
 {
@@ -71,29 +71,36 @@ void GUI::startFrame(
     ImGui::Checkbox("##Use slider time", &_useSliderTime);
     ImGui::SameLine(); ImGui::DragFloat("uTime", &_sliderTime, 0.01f);
 
-    for (auto& e : uniforms) {
-        std::string name = e.first;
-        Uniform& uniform = e.second;
-        switch (uniform.type) {
-        case UniformType::Float:
-            uniformOffset();
-            ImGui::DragFloat(name.c_str(), uniform.value, 0.01f);
-            break;
-        case UniformType::Vec2:
-            uniformOffset();
-            ImGui::DragFloat2(name.c_str(), uniform.value, 0.01f);
-            break;
-        case UniformType::Vec3:
-            ImGui::ColorEdit3(
-                std::string("##" + name).c_str(),
-                uniform.value,
-                ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_PickerHueWheel
-            );
-            ImGui::SameLine(); ImGui::DragFloat3(name.c_str(), uniform.value, 0.01f);
-            break;
-        default:
-            printf("[gui] Unknown dynamic uniform type\n");
-            break;
+    for (auto* s : shaders)
+    {
+        assert(s != nullptr);
+        if (ImGui::CollapsingHeader(s->name().c_str()))
+        {
+            for (auto& e : s->dynamicUniforms()) {
+                std::string name = e.first + "##" + s->name();
+                Uniform& uniform = e.second;
+                switch (uniform.type) {
+                case UniformType::Float:
+                    uniformOffset();
+                    ImGui::DragFloat(name.c_str(), uniform.value, 0.01f);
+                    break;
+                case UniformType::Vec2:
+                    uniformOffset();
+                    ImGui::DragFloat2(name.c_str(), uniform.value, 0.01f);
+                    break;
+                case UniformType::Vec3:
+                    ImGui::ColorEdit3(
+                        std::string("##" + name).c_str(),
+                        uniform.value,
+                        ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_PickerHueWheel
+                    );
+                    ImGui::SameLine(); ImGui::DragFloat3(name.c_str(), uniform.value, 0.01f);
+                    break;
+                default:
+                    printf("[gui] Unknown dynamic uniform type\n");
+                    break;
+                }
+            }
         }
     }
 

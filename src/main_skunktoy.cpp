@@ -24,7 +24,7 @@ int main()
   vertPath += "shader/basic_vert.glsl";
   std::string fragPath(RES_DIRECTORY);
   fragPath += "shader/basic_frag.glsl";
-  Shader shader(vertPath, fragPath, "");
+  Shader shader("Shader", vertPath, fragPath, "");
 
   Timer reloadTime;
   Timer globalTime;
@@ -37,7 +37,7 @@ int main()
     window.startFrame();
 
     if (window.drawGUI())
-      gui.startFrame(window.height(), shader.dynamicUniforms(), profilers);
+      gui.startFrame(window.height(), {&shader}, profilers);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

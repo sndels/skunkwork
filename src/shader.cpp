@@ -47,11 +47,12 @@ Shader::Shader(const std::string& name, sync_device* rocket, const std::string& 
     if (progID != 0) _progID = progID;
 }
 #else
-Shader::Shader(const std::string& vertPath, const std::string& fragPath,
-               const std::string& geomPath) :
+Shader::Shader(const std::string& name, const std::string& vertPath,
+               const std::string& fragPath, const std::string& geomPath) :
     _progID(0),
     _filePaths(3),
-    _fileMods(3)
+    _fileMods(3),
+    _name(name)
 {
     setVendor();
     GLuint progID = loadProgram(vertPath, fragPath, geomPath);
@@ -130,6 +131,11 @@ bool Shader::reload()
 std::unordered_map<std::string, Uniform>& Shader::dynamicUniforms()
 {
     return _dynamicUniforms;
+}
+
+const std::string &Shader::name() const
+{
+    return _name;
 }
 
 void Shader::setFloat(const std::string& name, GLfloat value)

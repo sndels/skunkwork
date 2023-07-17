@@ -68,8 +68,8 @@ int main()
     rayMarchingFragPath += "shader/ray_marching_frag.glsl";
     std::string compositeFragPath(RES_DIRECTORY);
     compositeFragPath += "shader/composite_frag.glsl";
-    Shader basicShader("Scene", rocket, vertPath, basicFragPath);
-    Shader rayMarchingShader("Scene", rocket, vertPath, rayMarchingFragPath);
+    Shader basicShader("Basic", rocket, vertPath, basicFragPath);
+    Shader rayMarchingShader("RayMarch", rocket, vertPath, rayMarchingFragPath);
     Shader compositeShader("Composite", rocket, vertPath, compositeFragPath);
 
 #ifdef TCPROCKET
@@ -129,7 +129,7 @@ int main()
         if (window.drawGUI())
         {
             // TODO: Multiple passes' uniforms in UI
-            gui.startFrame(window.height(), basicShader.dynamicUniforms(), profilers);
+            gui.startFrame(window.height(),{&basicShader, &rayMarchingShader, &compositeShader}, profilers);
         }   
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

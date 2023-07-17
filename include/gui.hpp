@@ -22,7 +22,7 @@ public:
     float sliderTime() const;
 
     void startFrame(int windowHeight,
-                    std::unordered_map<std::string, Uniform>& uniforms,
+                    std::vector<Shader*> const& shaders,
                     const std::vector<std::pair<std::string, const GpuProfiler*>>& timers);
     void endFrame();
 
