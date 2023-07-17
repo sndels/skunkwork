@@ -55,7 +55,7 @@ int main()
 #endif // TCPROCKET || MUSIC_AUTOPLAY
 
     // Set up rocket
-    sync_device *rocket = sync_create_device("sync");
+    sync_device *rocket = sync_create_device(RES_DIRECTORY "rocket/sync");
     if (!rocket)
         printf("[rocket] Failed to create device\n");
 
