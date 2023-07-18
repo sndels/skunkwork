@@ -31,6 +31,8 @@ public:
     bool isPlaying();
     void pause();
     void stop();
+    double getTimeS() const;
+    void setTimeS(double timeS);
     double getRow() const;
     void setRow(int32_t row);
 

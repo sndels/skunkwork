@@ -36,8 +36,9 @@ int main()
   while (window.open()) {
     window.startFrame();
 
+    float t = 0;
     if (window.drawGUI())
-      gui.startFrame(window.height(), {&shader}, profilers);
+      gui.startFrame(window.height(), t, {&shader}, profilers);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

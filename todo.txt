@@ -1,6 +1,7 @@
-- Namespaces for shader dynamic uniforms
-  - Should be able to use same names for custom stuff
 - Effect management/sync
   - std::vector<Shader>, rocket tracks
-- Song scrubbing without rocket
 - Song FFT shader input
+- Higher resolution timestamp for music position
+  - Mix_GetMusicPosition appears to have 100ms resolution (Ubuntu), we need much
+    more granular than that for animation
+- fullscreen in DEMO_MODE
