@@ -119,9 +119,15 @@ bool Window::drawGUI() const
     return _drawGUI;
 }
 
+bool Window::playPausePressed() const
+{
+    return _playPausePressed;
+}
+
 bool Window::startFrame()
 {
     bool resized = false;
+    _playPausePressed = false;
 
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
@@ -179,6 +185,9 @@ void Window::handleKey(SDL_Event const& event)
                     break;
                 case SDLK_g:
                     _drawGUI = !_drawGUI;
+                    break;
+                case SDLK_SPACE:
+                    _playPausePressed = true;
                     break;
                 default:
                     break;

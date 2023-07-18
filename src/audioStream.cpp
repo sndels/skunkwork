@@ -105,6 +105,15 @@ double AudioStream::getRow() const
     return timeS * ROW_RATE;
 }
 
+double AudioStream::getTimeS() const{
+    return Mix_GetMusicPosition(_music);
+}
+
+void AudioStream::setTimeS(double timeS)
+{
+    Mix_SetMusicPosition(timeS);
+}
+
 void AudioStream::setRow(int32_t row)
 {
     double const timeS = row / (double)ROW_RATE;

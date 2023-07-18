@@ -13,10 +13,12 @@
 #include "timer.hpp"
 #include "window.hpp"
 
-// Comment out to disable autoplay without tcp-Rocket
-// #define MUSIC_AUTOPLAY
+// Comment out to compile in demo-mode, so close when music stops etc.
+// #define DEMO_MODE
+#ifndef DEMO_MODE
 // Comment out to load sync from files
 // #define TCPROCKET
+#endif // !DEMO_MODE
 
 #ifdef TCPROCKET
 //Set up audio callbacks for rocket
@@ -42,7 +44,6 @@ int main()
 
     Quad q;
 
-#if (defined(TCPROCKET) || defined(MUSIC_AUTOPLAY))
     // Set up audio
     std::string musicPath(RES_DIRECTORY);
     musicPath += "illegal_af.wav";
@@ -52,7 +53,6 @@ int main()
         window.destroy();
         exit(EXIT_FAILURE);
     }
-#endif // TCPROCKET || MUSIC_AUTOPLAY
 
     // Set up rocket
     sync_device *rocket = sync_create_device(RES_DIRECTORY "rocket/sync");
@@ -103,13 +103,21 @@ int main()
     FrameBuffer scenePingFbo(XRES, YRES, sceneTexParams);
     FrameBuffer scenePongFbo(XRES, YRES, sceneTexParams);
 
-#ifdef MUSIC_AUTOPLAY
     AudioStream::getInstance().play();
-#endif // MUSIC_AUTOPLAY
 
     // Run the main loop
     while (window.open()) {
         bool const resized = window.startFrame();
+
+#ifndef DEMO_MODE
+        if (window.playPausePressed())
+        {
+            if (AudioStream::getInstance().isPlaying())
+                AudioStream::getInstance().pause();
+            else
+                AudioStream::getInstance().play();
+        }
+#endif // !DEMO_MODE
 
         if (resized) {
             scenePingFbo.resize(window.width(), window.height());
@@ -126,13 +134,17 @@ int main()
             sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT);
 #endif // TCPROCKET
 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+#ifndef DEMO_MODE
         if (window.drawGUI())
         {
-            // TODO: Multiple passes' uniforms in UI
-            gui.startFrame(window.height(),{&basicShader, &rayMarchingShader, &compositeShader}, profilers);
+            float const currentTimeS = AudioStream::getInstance().getTimeS();
+            float uiTimeS = currentTimeS;
+            gui.startFrame(window.height(), uiTimeS, {&basicShader, &rayMarchingShader, &compositeShader}, profilers);
+            if (uiTimeS != currentTimeS)
+                AudioStream::getInstance().setTimeS(uiTimeS);
         }   
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Try reloading the shader every 0.5s
         if (reloadTime.getSeconds() > 0.5f) {
@@ -145,6 +157,7 @@ int main()
         //TODO: No need to reset before switch back
         if (gui.useSliderTime())
             globalTime.reset();
+#endif //! DEMO_MODE
 
         scenePingProf.startSample();
         basicShader.bind(syncRow);
@@ -182,15 +195,17 @@ int main()
         q.render();
         compositeProf.endSample();
 
+#ifndef DEMO_MODE
         if (window.drawGUI())
             gui.endFrame();
+#endif // DEMO_MODE
 
         window.endFrame();
 
-#ifdef MUSIC_AUTOPLAY
+#ifdef DEMO_MODE
         if (!AudioStream::getInstance().isPlaying())
             window.setClose();
-#endif // MUSIC_AUTOPLAY
+#endif // DEMO_MODE
     }
 
     // Save rocket tracks

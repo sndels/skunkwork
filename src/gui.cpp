@@ -51,6 +51,7 @@ float GUI::sliderTime() const
 
 void GUI::startFrame(
     int windowHeight,
+    float& timeS,
     std::vector<Shader*> const& shaders,
     const std::vector<std::pair<std::string, const GpuProfiler*>>& timers
 )
@@ -69,7 +70,10 @@ void GUI::startFrame(
     ImGui::Begin("Skunkwork GUI");
 
     ImGui::Checkbox("##Use slider time", &_useSliderTime);
-    ImGui::SameLine(); ImGui::DragFloat("uTime", &_sliderTime, 0.01f);
+    ImGui::SameLine(); ImGui::DragFloat("uTime", &timeS, 0.01f);
+    if (timeS < 0.f)
+        timeS = 0.f;
+    _sliderTime = timeS;
 
     for (auto* s : shaders)
     {

@@ -23,6 +23,7 @@ public:
     int width() const;
     int height() const;
     bool drawGUI() const;
+    bool playPausePressed() const;
 
     // Returns true if backbuffer was resized
     bool startFrame();
@@ -37,6 +38,7 @@ private:
     int _w{0};
     int _h{0};
     bool _drawGUI{false};
+    bool _playPausePressed{false};
     bool _shouldClose{false};
 };
 
