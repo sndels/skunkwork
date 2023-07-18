@@ -7,10 +7,6 @@
 #include <cstdio>
 
 namespace {
-    float LOGW = 690.f;
-    float LOGH = 210.f;
-    float LOGM = 10.f;
-
     inline void uniformOffset()
     {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 27.f);
