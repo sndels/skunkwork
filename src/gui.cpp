@@ -74,6 +74,12 @@ void GUI::startFrame(
 
     ImGui::InputInt("Scene override", &sceneOverride, 1, 1);
     ImGui::Checkbox("##Use slider time", &_useSliderTime);
+    ImGui::SameLine();
+    if (ImGui::Button("<<"))
+        timeS -= 1.0;
+    ImGui::SameLine();
+    if (ImGui::Button(">>"))
+        timeS += 1.0;
     ImGui::SameLine(); ImGui::DragFloat("uTime", &timeS, 0.01f);
     if (timeS < 0.f)
         timeS = 0.f;
