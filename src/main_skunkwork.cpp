@@ -38,6 +38,10 @@ int main()
     if (!window.init(XRES, YRES, "skunkwork"))
         return -1;
 
+#ifdef DEMO_MODE
+    SDL_SetWindowFullscreen(window.ptr(), SDL_WINDOW_FULLSCREEN);
+#endif // DEMO_MODE
+
     // Setup imgui
     GUI gui;
     gui.init(window.ptr(), window.ctx());
