@@ -91,7 +91,7 @@ int main()
     GpuProfiler compositeProf(5);
     std::vector<std::pair<std::string, const GpuProfiler*>> profilers = {
             {"ScenePing", &scenePingProf},
-            {"ScenePong", &scenePingProf},
+            {"ScenePong", &scenePongProf},
             {"Composite", &compositeProf}
     };
 
