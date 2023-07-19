@@ -47,6 +47,7 @@ float GUI::sliderTime() const
 
 void GUI::startFrame(
     int windowHeight,
+    int32_t& sceneOverride,
     float& timeS,
     std::vector<Shader*> const& shaders,
     const std::vector<std::pair<std::string, const GpuProfiler*>>& timers
@@ -65,6 +66,7 @@ void GUI::startFrame(
     ImGui::SetNextWindowCollapsed(true, ImGuiSetCond_Once);
     ImGui::Begin("Skunkwork GUI");
 
+    ImGui::InputInt("Scene override", &sceneOverride, 1, 1);
     ImGui::Checkbox("##Use slider time", &_useSliderTime);
     ImGui::SameLine(); ImGui::DragFloat("uTime", &timeS, 0.01f);
     if (timeS < 0.f)
