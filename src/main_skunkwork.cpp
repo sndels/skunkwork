@@ -41,6 +41,7 @@ int main()
 
 #ifdef DEMO_MODE
     SDL_SetWindowFullscreen(window.ptr(), SDL_WINDOW_FULLSCREEN);
+    SDL_ShowCursor(false);
 #endif // DEMO_MODE
 
     // Setup imgui
