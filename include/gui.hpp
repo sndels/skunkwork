@@ -22,6 +22,7 @@ public:
     float sliderTime() const;
 
     void startFrame(int windowHeight,
+                    int32_t& sceneOverride,
                     float& timeS,
                     std::vector<Shader*> const& shaders,
                     const std::vector<std::pair<std::string, const GpuProfiler*>>& timers);
