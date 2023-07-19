@@ -25,7 +25,14 @@ void GUI::init(SDL_Window* window, SDL_GLContext context)
     ImGui::CreateContext();
     ImGui_ImplSDL2_InitForOpenGL(_window, context);
     ImGui_ImplOpenGL3_Init("#version 410");
+
     ImGui::StyleColorsDark();
+    ImGui::GetStyle().WindowRounding = 0.0f;
+    ImGui::GetStyle().ChildRounding = 0.0f;
+    ImGui::GetStyle().FrameRounding = 0.0f;
+    ImGui::GetStyle().GrabRounding = 0.0f;
+    ImGui::GetStyle().PopupRounding = 0.0f;
+    ImGui::GetStyle().ScrollbarRounding = 0.0f;
 }
 
 void GUI::destroy()
@@ -62,9 +69,8 @@ void GUI::startFrame(
 
     // Uniform editor
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiSetCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
-    ImGui::SetNextWindowCollapsed(true, ImGuiSetCond_Once);
-    ImGui::Begin("Skunkwork GUI");
+    ImGui::SetNextWindowCollapsed(false, ImGuiSetCond_Once);
+    ImGui::Begin("Skunkwork GUI", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::InputInt("Scene override", &sceneOverride, 1, 1);
     ImGui::Checkbox("##Use slider time", &_useSliderTime);
