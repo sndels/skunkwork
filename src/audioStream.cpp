@@ -85,7 +85,7 @@ void AudioStream::play()
 }
 
 bool AudioStream::isPlaying() {
-    return Mix_PlayingMusic() == 1;
+    return Mix_PlayingMusic() == 1 && Mix_PausedMusic() != 1;
 }
 
 void AudioStream::pause()
