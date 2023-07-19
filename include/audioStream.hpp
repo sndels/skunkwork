@@ -4,6 +4,7 @@
 #include <SDL_mixer.h>
 
 #include <string>
+#include <chrono>
 
 class AudioStream
 {
@@ -31,18 +32,19 @@ public:
     bool isPlaying();
     void pause();
     void stop();
-    double getTimeS() const;
+    double getTimeS();
     void setTimeS(double timeS);
-    double getRow() const;
+    double getRow();
     void setRow(int32_t row);
 
 private:
-    AudioStream() = default;
+    AudioStream();
     ~AudioStream();
 
     Mix_Music* _music{nullptr};
-    bool    _shouldRestart{false};
-
+    bool _shouldRestart{false};
+    double _timeS{0.f};
+    std::chrono::high_resolution_clock::time_point _prevTimeStamp;
 };
 
 #endif // AUDIOSTREAM_HPP

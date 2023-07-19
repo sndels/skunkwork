@@ -99,26 +99,50 @@ void AudioStream::stop()
     _shouldRestart = true;
 }
 
-double AudioStream::getRow() const
+double AudioStream::getRow()
 {
-    double const timeS = Mix_GetMusicPosition(_music);
+    double timeS = getTimeS();
     return timeS * ROW_RATE;
 }
 
-double AudioStream::getTimeS() const{
-    return Mix_GetMusicPosition(_music);
+double AudioStream::getTimeS() {
+
+    if (isPlaying())
+    {
+        double const mixTimeS = Mix_GetMusicPosition(_music);
+
+        // Smooth over the coarse API timestamps for animation
+        // Idea from SoLoud docs https://solhsa.com/soloud/coremisc.html 
+        auto const now = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> const dt = now - _prevTimeStamp;
+        // Fudge a polling-rate based history weight
+        // This seems to work at various demo refresh rates
+        double const alpha = 1.0 - std::min(10 * dt.count(), 1.0);
+        _timeS = (_timeS * alpha + mixTimeS * (1 - alpha));
+
+        _prevTimeStamp = now;
+    }
+
+    return _timeS;
 }
 
 void AudioStream::setTimeS(double timeS)
 {
+    _prevTimeStamp = std::chrono::high_resolution_clock::now();
     Mix_SetMusicPosition(timeS);
+    _timeS = timeS;
 }
 
 void AudioStream::setRow(int32_t row)
 {
     double const timeS = row / (double)ROW_RATE;
     Mix_SetMusicPosition(timeS);
+    _timeS = timeS;
 }
+
+AudioStream::AudioStream()
+: _prevTimeStamp{std::chrono::high_resolution_clock::now()}
+{}
 
 AudioStream::~AudioStream()
 {
