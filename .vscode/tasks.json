@@ -26,7 +26,7 @@
             "label": "Ninja (Distribute)",
             "type": "shell",
             "dependsOn": [
-                "resources distribute",
+                "resources distribute linux",
                 "cmake ninja distribute"
             ],
             "command": "ninja",
@@ -45,7 +45,7 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "resources distribute",
+            "label": "resources distribute linux",
             "type": "shell",
             "dependsOn":[
                 "cmake ninja distribute"
@@ -131,6 +131,65 @@
             },
             // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "MSBuild (Distribute)",
+            "type": "shell",
+            "dependsOn": [
+                "resources distribute windows",
+                "cmake vs distribute"
+            ],
+            "command": "msbuild",
+            "args": [
+                "INSTALL.vcxproj"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "never"
+            },
+            "options": {
+                "cwd": "${workspaceRoot}/build",
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "resources distribute windows",
+            "type": "shell",
+            "dependsOn":[
+                "cmake vs distribute"
+            ],
+            "command": "(mkdir",
+            "args": [
+                "-p",
+                "build/skunkwork_dist)",
+                "-and",
+                "(cp",
+                "-r",
+                "res",
+                "build/skunkwork_dist/)"
+            ],
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "cmake vs distribute",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-B",
+                "build",
+                "-DDISTRIBUTE_DEMO=1",
+                "-G",
+                "Visual Studio 17 2022"
+            ],
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            }
         },
         {
             "label": "cmake",
