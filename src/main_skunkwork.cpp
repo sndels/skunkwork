@@ -63,7 +63,9 @@ int main()
 
     // Set up rocket
     sync_device *rocket = sync_create_device(
-        std::filesystem::path{RES_DIRECTORY "rocket/sync"}.relative_path().lexically_normal().string().c_str());
+        std::filesystem::relative(
+            std::filesystem::path{RES_DIRECTORY "rocket/sync"},
+            std::filesystem::current_path()).lexically_normal().string().c_str());
     if (!rocket) {
         printf("[rocket] Failed to create device\n");
         exit(EXIT_FAILURE);
