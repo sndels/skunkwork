@@ -8,7 +8,7 @@
 
 out vec4 fragColor;
 
-#define INF 1.0/0.0
+#define INF (1.0/0.0)
 
 // Returns distance to hit and material index
 vec2 scene(vec3 p)
