@@ -62,8 +62,10 @@ int main()
 
     // Set up rocket
     sync_device *rocket = sync_create_device(RES_DIRECTORY "rocket/sync");
-    if (!rocket)
+    if (!rocket) {
         printf("[rocket] Failed to create device\n");
+        exit(EXIT_FAILURE);
+    }
 
     // Set up scene
     std::string vertPath{RES_DIRECTORY "shader/basic_vert.glsl"};
@@ -77,8 +79,10 @@ int main()
 #ifdef TCPROCKET
     // Try connecting to rocket-server
     int rocketConnected = sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT) == 0;
-    if (!rocketConnected)
+    if (!rocketConnected) {
         printf("[rocket] Failed to connect to server\n");
+        exit(EXIT_FAILURE);
+    }
 #endif // TCPROCKET
 
     // Init rocket tracks here
