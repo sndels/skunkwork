@@ -9,7 +9,12 @@ out vec4 fragColor;
 
 void main()
 {
+    // Avoid nags if these aren't used
+    if (uTime < -1 || uRes.x < -1)
+        discard;
+
     vec2 uv = gl_FragCoord.xy / uRes.xy;
-    vec3 color = dColor + vec3(0.5 * uMPos + uv, 0.5 * sin(uTime) + 0.5);
+    vec3 color = dColor + vec3(uv, 0.5 * sin(uTime) + 0.5);
+
     fragColor = vec4(color, 1);
 }
