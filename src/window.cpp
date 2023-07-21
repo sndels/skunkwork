@@ -7,7 +7,7 @@
 #include <imgui_impl_sdl.h>
 #include <stdio.h>
 
-bool Window::init(int w, int h, const std::string& title)
+bool Window::init(int w, int h, const std::string& title, int displayIndex)
 {
     _w = w;
     _h = h;
@@ -30,7 +30,9 @@ bool Window::init(int w, int h, const std::string& title)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    _window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _w, _h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+
+
+    _window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), _w, _h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (_window == nullptr)
     {
         fprintf(stderr, "Window create failed: %s\n", SDL_GetError());

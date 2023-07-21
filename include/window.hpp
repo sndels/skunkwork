@@ -9,7 +9,7 @@ class Window
 {
 public:
     Window() {};
-    bool init(int w, int h, const std::string& title);
+    bool init(int w, int h, const std::string& title, int displayIndex = 0);
     void destroy();
 
     Window(const Window& other) = delete;
