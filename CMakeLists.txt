@@ -9,7 +9,7 @@ if (DISTRIBUTE_DEMO)
     # Set relative paths for shared libraries
     set(CMAKE_INSTALL_RPATH $ORIGIN)
     # Set relative path to distributable res directory
-    add_definitions(-DRES_DIRECTORY="./res/")
+    add_definitions(-DDEMO_MODE -DRES_DIRECTORY="./res/")
 else()
     # Set absolute path to res directory
     add_definitions(-DRES_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/res/")
