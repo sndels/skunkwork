@@ -61,7 +61,7 @@ int main()
     }
 
     // Set up rocket
-    sync_device *rocket = sync_create_device(RES_DIRECTORY "rocket/sync");
+    sync_device *rocket = sync_create_device("rocket/sync");
     if (!rocket) {
         printf("[rocket] Failed to create device\n");
         exit(EXIT_FAILURE);
