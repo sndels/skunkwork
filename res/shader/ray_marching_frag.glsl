@@ -67,6 +67,10 @@ vec3 rayDir(vec2 px)
 
 void main()
 {
+    // Avoid nags if these aren't used
+    if (uTime < -1 || uRes.x < -1)
+        discard;
+
     // Generate camera ray
     vec3 rd = rayDir(gl_FragCoord.xy);
     vec3 ro = vec3(0, 0, -3);

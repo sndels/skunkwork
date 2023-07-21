@@ -39,6 +39,10 @@ uniform float dCaberr;
 
 void main()
 {
+    // Avoid nags if these aren't used
+    if (uTime < -1 || uRes.x < -1)
+        discard;
+
     vec4 ping = sampleSource(uScenePingColorDepth, dCaberr);
     vec4 pong = sampleSource(uScenePongColorDepth, dCaberr);
 
