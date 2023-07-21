@@ -34,10 +34,23 @@ static struct sync_cb audioSync = {
 #define XRES 1920
 #define YRES 1080
 
-int main()
+int main(int argc, char *argv[])
 {
+    int displayIndex = 0;
+    if (argc == 2)
+    {
+        if (strncmp(argv[1], "1", 1) == 0)
+            displayIndex = 1;
+        else if (strncmp(argv[1], "2", 1) == 0)
+            displayIndex = 2;
+        else
+        {
+            fprintf(stderr, "Unexpected CLI argument, only '1', '2' is supported for selecting second or third connected display \n");
+            exit(EXIT_FAILURE);
+        }
+    }
     Window window;
-    if (!window.init(XRES, YRES, "skunkwork"))
+    if (!window.init(XRES, YRES, "skunkwork", displayIndex))
         return -1;
 
 #ifdef DEMO_MODE
