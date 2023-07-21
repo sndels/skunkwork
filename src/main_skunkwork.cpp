@@ -1,6 +1,7 @@
 #include <cmath>
 #include <algorithm>
 #include <GL/gl3w.h>
+#include <filesystem>
 #include <sync.h>
 #include <track.h>
 
@@ -61,7 +62,8 @@ int main()
     }
 
     // Set up rocket
-    sync_device *rocket = sync_create_device("rocket/sync");
+    sync_device *rocket = sync_create_device(
+        std::filesystem::path{RES_DIRECTORY "rocket/sync"}.relative_path().lexically_normal().string().c_str());
     if (!rocket) {
         printf("[rocket] Failed to create device\n");
         exit(EXIT_FAILURE);
