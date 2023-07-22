@@ -87,10 +87,9 @@ int main(int argc, char *argv[])
     // Set up scene
     std::string vertPath{RES_DIRECTORY "shader/basic_vert.glsl"};
     std::vector<Shader> sceneShaders;
-    sceneShaders.emplace_back(
-        "Basic", rocket, vertPath, RES_DIRECTORY "shader/basic_frag.glsl");
-    sceneShaders.emplace_back(
-        "RayMarch", rocket, vertPath, RES_DIRECTORY "shader/ray_marching_frag.glsl");
+    sceneShaders.emplace_back("Basic", rocket, vertPath, RES_DIRECTORY "shader/basic_frag.glsl");
+    sceneShaders.emplace_back("RayMarch", rocket, vertPath, RES_DIRECTORY "shader/ray_marching_frag.glsl");
+    sceneShaders.emplace_back("Mask", rocket, vertPath, RES_DIRECTORY "shader/mask_frag.glsl");
     Shader compositeShader("Composite", rocket, vertPath, RES_DIRECTORY "shader/composite_frag.glsl");
 
 #ifdef TCPROCKET
@@ -184,7 +183,7 @@ int main(int argc, char *argv[])
 
             if (uiTimeS != currentTimeS)
                 AudioStream::getInstance().setTimeS(uiTimeS);
-        }   
+        }
 
         // Try reloading the shader every 0.5s
         if (reloadTime.getSeconds() > 0.5f) {
