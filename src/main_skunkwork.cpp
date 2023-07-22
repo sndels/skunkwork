@@ -70,11 +70,10 @@ int main()
     // Set up scene
     std::string vertPath{RES_DIRECTORY "shader/basic_vert.glsl"};
     std::vector<Shader> sceneShaders;
-    sceneShaders.emplace_back(
-        "Basic", rocket, vertPath, RES_DIRECTORY "shader/basic_frag.glsl");
-    sceneShaders.emplace_back(
-        "RayMarch", rocket, vertPath, RES_DIRECTORY "shader/ray_marching_frag.glsl");
+    sceneShaders.emplace_back("Basic", rocket, vertPath, RES_DIRECTORY "shader/basic_frag.glsl");
+    sceneShaders.emplace_back("RayMarch", rocket, vertPath, RES_DIRECTORY "shader/ray_marching_frag.glsl");
     Shader compositeShader("Composite", rocket, vertPath, RES_DIRECTORY "shader/composite_frag.glsl");
+    Shader quadShader("Quad", rocket, vertPath, RES_DIRECTORY "shader/render_quad_frag.glsl");
 
 #ifdef TCPROCKET
     // Try connecting to rocket-server
@@ -94,10 +93,12 @@ int main()
     GpuProfiler scenePingProf(5);
     GpuProfiler scenePongProf(5);
     GpuProfiler compositeProf(5);
+    GpuProfiler quadProf(5);
     std::vector<std::pair<std::string, const GpuProfiler*>> profilers = {
             {"ScenePing", &scenePingProf},
             {"ScenePong", &scenePongProf},
-            {"Composite", &compositeProf}
+            {"Composite", &compositeProf},
+            {"Quad", &quadProf}
     };
 
     TextureParams rgba16fParams = {GL_RGBA16F, GL_RGBA, GL_FLOAT,
@@ -110,6 +111,7 @@ int main()
 
     FrameBuffer scenePingFbo(XRES, YRES, sceneTexParams);
     FrameBuffer scenePongFbo(XRES, YRES, sceneTexParams);
+    FrameBuffer compositeFbo(XRES, YRES, sceneTexParams);
 
     AudioStream::getInstance().play();
 
@@ -132,6 +134,7 @@ int main()
         if (resized) {
             scenePingFbo.resize(window.width(), window.height());
             scenePongFbo.resize(window.width(), window.height());
+            compositeFbo.resize(window.width(), window.height());
         }
 
         // Sync
@@ -223,6 +226,7 @@ int main()
 
             compositeProf.startSample();
             compositeShader.bind(syncRow);
+            compositeFbo.bindWrite();
             compositeShader.setFloat(
                 "uTime",
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
@@ -231,7 +235,19 @@ int main()
             scenePingFbo.bindRead(0, GL_TEXTURE0, compositeShader.getUniformLocation("uScenePingColorDepth"));
             scenePongFbo.bindRead(0, GL_TEXTURE1, compositeShader.getUniformLocation("uScenePongColorDepth"));
             q.render();
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             compositeProf.endSample();
+
+            quadProf.startSample();
+            quadShader.bind(syncRow);
+            quadShader.setFloat(
+                "uTime",
+                gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
+            );
+            quadShader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
+            compositeFbo.bindRead(0, GL_TEXTURE2, quadShader.getUniformLocation("uQuad"));
+            q.render();
+            quadProf.endSample();
         }
 
 #ifndef DEMO_MODE
