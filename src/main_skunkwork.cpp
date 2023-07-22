@@ -102,8 +102,11 @@ int main()
     };
 
     TextureParams rgba16fParams = {GL_RGBA16F, GL_RGBA, GL_FLOAT,
-                                  GL_LINEAR, GL_LINEAR,
-                                  GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER};
+                                   GL_LINEAR, GL_LINEAR,
+                                   GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER};
+    TextureParams rgba32fParams = {GL_RGBA32F, GL_RGBA, GL_FLOAT,
+                                   GL_LINEAR, GL_LINEAR,
+                                   GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER};
 
 
     // Generate framebuffer for main rendering
@@ -111,7 +114,7 @@ int main()
 
     FrameBuffer scenePingFbo(XRES, YRES, sceneTexParams);
     FrameBuffer scenePongFbo(XRES, YRES, sceneTexParams);
-    FrameBuffer compositeFbo(XRES, YRES, sceneTexParams);
+    FrameBuffer compositeFbo(XRES, YRES, {rgba16fParams, rgba32fParams});
 
     AudioStream::getInstance().play();
 
@@ -234,6 +237,7 @@ int main()
             compositeShader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
             scenePingFbo.bindRead(0, GL_TEXTURE0, compositeShader.getUniformLocation("uScenePingColorDepth"));
             scenePongFbo.bindRead(0, GL_TEXTURE1, compositeShader.getUniformLocation("uScenePongColorDepth"));
+            compositeFbo.bindRead(1, GL_TEXTURE2, compositeShader.getUniformLocation("uPrevAux"));
             q.render();
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             compositeProf.endSample();

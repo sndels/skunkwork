@@ -4,12 +4,15 @@
 #include "noise.glsl"
 
 uniform vec3 dColor;
+uniform float dMix;
 uniform float uMultiplier;
 
 uniform sampler2D uScenePingColorDepth;
 uniform sampler2D uScenePongColorDepth;
+uniform sampler2D uPrevAux;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 aux;
 
 #define ABERR_SAMPLES 16 
 
@@ -47,11 +50,10 @@ void main()
     vec4 pong = sampleSource(uScenePongColorDepth, dCaberr);
 
     vec3 color = vec3(0);
-    if (fbm(vec3(gl_FragCoord.xy * 0.01, uTime), 0.4, 4) > 0.8)
-    {
-        color = ping.rgb;
-    } else {
-        color = pong.rgb;
-    }
+    color.rgb = ping.rgb * pong.rgb + (1-ping.rgb) * (1-pong.rgb);
+
+    vec2 texCoord = gl_FragCoord.xy / uRes;
     fragColor = vec4(color, 1);
+    fragColor = 0.05*vec4(color, 1) + 0.95*texture(uPrevAux, texCoord);
+    aux = (1.0-dMix)*vec4(color, 1) + dMix*texture(uPrevAux, texCoord);
 }
