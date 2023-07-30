@@ -167,10 +167,10 @@ int main(int argc, char *argv[])
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        float const currentTimeS = AudioStream::getInstance().getTimeS();
 #ifndef DEMO_MODE
         if (window.drawGUI())
         {
-            float const currentTimeS = AudioStream::getInstance().getTimeS();
             float uiTimeS = currentTimeS;
 
             std::vector<Shader*> shaders{&compositeShader};
@@ -203,7 +203,11 @@ int main(int argc, char *argv[])
             sceneShaders[overrideIndex].bind(syncRow);
             sceneShaders[overrideIndex].setFloat(
                 "uTime",
+#ifdef DEMO_MODE
+                currentTimeS
+#else // DEMO_NODE
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
+#endif // DEMO_MODE
             );
             sceneShaders[overrideIndex].setVec2(
                 "uRes", (GLfloat)window.width(), (GLfloat)window.height());
@@ -218,7 +222,11 @@ int main(int argc, char *argv[])
             scenePingFbo.bindWrite();
             sceneShaders[pingIndex].setFloat(
                 "uTime",
+#ifdef DEMO_MODE
+                currentTimeS
+#else // DEMO_NODE
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
+#endif // DEMO_MODE
             );
             sceneShaders[pingIndex].setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
             q.render();
@@ -230,7 +238,11 @@ int main(int argc, char *argv[])
             scenePongFbo.bindWrite();
             sceneShaders[pongIndex].setFloat(
                 "uTime",
+#ifdef DEMO_MODE
+                currentTimeS
+#else // DEMO_NODE
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
+#endif // DEMO_MODE
             );
             sceneShaders[pongIndex].setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
             q.render();
@@ -241,7 +253,11 @@ int main(int argc, char *argv[])
             compositeShader.bind(syncRow);
             compositeShader.setFloat(
                 "uTime",
+#ifdef DEMO_MODE
+                currentTimeS
+#else // DEMO_NODE
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
+#endif // DEMO_MODE
             );
             compositeShader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
             scenePingFbo.bindRead(0, GL_TEXTURE0, compositeShader.getUniformLocation("uScenePingColorDepth"));
