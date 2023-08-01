@@ -196,6 +196,7 @@
             "type": "shell",
             "command": "cmake",
             "args": [
+                "-DDISTRIBUTE_DEMO=0",
                 "-B",
                 "build",
             ],
