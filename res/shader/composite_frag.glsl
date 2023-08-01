@@ -3,9 +3,6 @@
 #include "uniforms.glsl"
 #include "noise.glsl"
 
-uniform vec3 dColor;
-uniform float uMultiplier;
-
 uniform sampler2D uScenePingColorDepth;
 uniform sampler2D uScenePongColorDepth;
 
@@ -36,6 +33,7 @@ vec4 sampleSource(sampler2D s, float aberr)
 }
 
 uniform float dCaberr;
+uniform float dTextMode;
 
 void main()
 {
@@ -47,11 +45,17 @@ void main()
     vec4 pong = sampleSource(uScenePongColorDepth, dCaberr);
 
     vec3 color = vec3(0);
-    if (fbm(vec3(gl_FragCoord.xy * 0.01, uTime), 0.4, 4) > 0.8)
+    if (dTextMode > .5)
     {
-        color = ping.rgb;
+        if (pong.a > 0.)
+            color = pong.rgb;
+        else
+            color = ping.rgb;
     } else {
-        color = pong.rgb;
+        if (fbm(vec3(gl_FragCoord.xy * 0.01, uTime), 0.4, 4) > 0.8)
+            color = ping.rgb;
+        else
+            color = pong.rgb;
     }
     fragColor = vec4(color, 1);
 }
