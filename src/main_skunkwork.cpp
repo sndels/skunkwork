@@ -1,19 +1,21 @@
-#include <cmath>
-#include <algorithm>
 #include <GL/gl3w.h>
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <sync.h>
 #include <track.h>
 
+
 #include "audioStream.hpp"
+#include "frameBuffer.hpp"
 #include "gpuProfiler.hpp"
 #include "gui.hpp"
-#include <cstdio>
 #include "quad.hpp"
 #include "shader.hpp"
-#include "frameBuffer.hpp"
 #include "timer.hpp"
 #include "window.hpp"
+#include <cstdio>
+
 
 // Comment out to compile in demo-mode, so close when music stops etc.
 // #define DEMO_MODE
@@ -23,12 +25,10 @@
 #endif // !DEMO_MODE
 
 #ifdef TCPROCKET
-//Set up audio callbacks for rocket
+// Set up audio callbacks for rocket
 static struct sync_cb audioSync = {
-    AudioStream::pauseStream,
-    AudioStream::setStreamRow,
-    AudioStream::isStreamPlaying
-};
+    AudioStream::pauseStream, AudioStream::setStreamRow,
+    AudioStream::isStreamPlaying};
 #endif // TCPROCKET
 
 #define XRES 1920
@@ -45,7 +45,9 @@ int main(int argc, char *argv[])
             displayIndex = 2;
         else
         {
-            fprintf(stderr, "Unexpected CLI argument, only '1', '2' is supported for selecting second or third connected display \n");
+            fprintf(
+                stderr, "Unexpected CLI argument, only '1', '2' is supported "
+                        "for selecting second or third connected display \n");
             exit(EXIT_FAILURE);
         }
     }
@@ -78,8 +80,12 @@ int main(int argc, char *argv[])
     sync_device *rocket = sync_create_device(
         std::filesystem::relative(
             std::filesystem::path{RES_DIRECTORY "rocket/sync"},
-            std::filesystem::current_path()).lexically_normal().generic_string().c_str());
-    if (!rocket) {
+            std::filesystem::current_path())
+            .lexically_normal()
+            .generic_string()
+            .c_str());
+    if (!rocket)
+    {
         printf("[rocket] Failed to create device\n");
         exit(EXIT_FAILURE);
     }
@@ -87,39 +93,45 @@ int main(int argc, char *argv[])
     // Set up scene
     std::string vertPath{RES_DIRECTORY "shader/basic_vert.glsl"};
     std::vector<Shader> sceneShaders;
-    sceneShaders.emplace_back("Basic", rocket, vertPath, RES_DIRECTORY "shader/basic_frag.glsl");
-    sceneShaders.emplace_back("RayMarch", rocket, vertPath, RES_DIRECTORY "shader/ray_marching_frag.glsl");
-    sceneShaders.emplace_back("Text", rocket, vertPath, RES_DIRECTORY "shader/text_frag.glsl");
-    Shader compositeShader("Composite", rocket, vertPath, RES_DIRECTORY "shader/composite_frag.glsl");
+    sceneShaders.emplace_back(
+        "Basic", rocket, vertPath, RES_DIRECTORY "shader/basic_frag.glsl");
+    sceneShaders.emplace_back(
+        "RayMarch", rocket, vertPath,
+        RES_DIRECTORY "shader/ray_marching_frag.glsl");
+    sceneShaders.emplace_back(
+        "Text", rocket, vertPath, RES_DIRECTORY "shader/text_frag.glsl");
+    Shader compositeShader(
+        "Composite", rocket, vertPath,
+        RES_DIRECTORY "shader/composite_frag.glsl");
 
 #ifdef TCPROCKET
     // Try connecting to rocket-server
-    int rocketConnected = sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT) == 0;
-    if (!rocketConnected) {
+    int rocketConnected =
+        sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT) == 0;
+    if (!rocketConnected)
+    {
         printf("[rocket] Failed to connect to server\n");
         exit(EXIT_FAILURE);
     }
 #endif // TCPROCKET
 
     // Init rocket tracks here
-    const sync_track* pingScene = sync_get_track(rocket, "pingScene");
-    const sync_track* pongScene = sync_get_track(rocket, "pongScene");
+    const sync_track *pingScene = sync_get_track(rocket, "pingScene");
+    const sync_track *pongScene = sync_get_track(rocket, "pongScene");
 
     Timer reloadTime;
     Timer globalTime;
     GpuProfiler scenePingProf(5);
     GpuProfiler scenePongProf(5);
     GpuProfiler compositeProf(5);
-    std::vector<std::pair<std::string, const GpuProfiler*>> profilers = {
-            {"ScenePing", &scenePingProf},
-            {"ScenePong", &scenePongProf},
-            {"Composite", &compositeProf}
-    };
+    std::vector<std::pair<std::string, const GpuProfiler *>> profilers = {
+        {"ScenePing", &scenePingProf},
+        {"ScenePong", &scenePongProf},
+        {"Composite", &compositeProf}};
 
-    TextureParams rgba16fParams = {GL_RGBA16F, GL_RGBA, GL_FLOAT,
-                                  GL_LINEAR, GL_LINEAR,
-                                  GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER};
-
+    TextureParams rgba16fParams = {
+        GL_RGBA16F,         GL_RGBA,           GL_FLOAT, GL_LINEAR, GL_LINEAR,
+        GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER};
 
     // Generate framebuffer for main rendering
     std::vector<TextureParams> sceneTexParams({rgba16fParams});
@@ -132,7 +144,8 @@ int main(int argc, char *argv[])
     int32_t overrideIndex = -1;
 
     // Run the main loop
-    while (window.open()) {
+    while (window.open())
+    {
         bool const resized = window.startFrame();
 
 #ifndef DEMO_MODE
@@ -145,7 +158,8 @@ int main(int argc, char *argv[])
         }
 #endif // !DEMO_MODE
 
-        if (resized) {
+        if (resized)
+        {
             scenePingFbo.resize(window.width(), window.height());
             scenePongFbo.resize(window.width(), window.height());
         }
@@ -156,14 +170,18 @@ int main(int argc, char *argv[])
 #ifdef TCPROCKET
         // Try re-connecting to rocket-server if update fails
         // Drops all the frames, if trying to connect on windows
-        if (sync_update(rocket, (int)floor(syncRow), &audioSync, AudioStream::getInstance().getMusic()))
+        if (sync_update(
+                rocket, (int)floor(syncRow), &audioSync,
+                AudioStream::getInstance().getMusic()))
             sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT);
 #endif // TCPROCKET
 
         int32_t pingIndex = std::clamp(
-            (int32_t)(float)sync_get_val(pingScene, syncRow), 0, (int32_t)sceneShaders.size() - 1);
+            (int32_t)(float)sync_get_val(pingScene, syncRow), 0,
+            (int32_t)sceneShaders.size() - 1);
         int32_t pongIndex = std::clamp(
-            (int32_t)(float)sync_get_val(pongScene, syncRow), 0, (int32_t)sceneShaders.size() - 1);
+            (int32_t)(float)sync_get_val(pongScene, syncRow), 0,
+            (int32_t)sceneShaders.size() - 1);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -173,27 +191,29 @@ int main(int argc, char *argv[])
         {
             float uiTimeS = currentTimeS;
 
-            std::vector<Shader*> shaders{&compositeShader};
-            for (Shader& s : sceneShaders)
+            std::vector<Shader *> shaders{&compositeShader};
+            for (Shader &s : sceneShaders)
                 shaders.push_back(&s);
 
-            gui.startFrame(window.height(), overrideIndex, uiTimeS, shaders, profilers);
-            overrideIndex = std::clamp(
-                overrideIndex, -1, (int32_t)sceneShaders.size() - 1);
+            gui.startFrame(
+                window.height(), overrideIndex, uiTimeS, shaders, profilers);
+            overrideIndex =
+                std::clamp(overrideIndex, -1, (int32_t)sceneShaders.size() - 1);
 
             if (uiTimeS != currentTimeS)
                 AudioStream::getInstance().setTimeS(uiTimeS);
         }
 
         // Try reloading the shader every 0.5s
-        if (reloadTime.getSeconds() > 0.5f) {
+        if (reloadTime.getSeconds() > 0.5f)
+        {
             compositeShader.reload();
-            for (Shader& s : sceneShaders)
+            for (Shader &s : sceneShaders)
                 s.reload();
             reloadTime.reset();
         }
 
-        //TODO: No need to reset before switch back
+        // TODO: No need to reset before switch back
         if (gui.useSliderTime())
             globalTime.reset();
 
@@ -205,7 +225,7 @@ int main(int argc, char *argv[])
                 "uTime",
 #ifdef DEMO_MODE
                 currentTimeS
-#else // DEMO_NODE
+#else  // DEMO_NODE
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
 #endif // DEMO_MODE
             );
@@ -224,11 +244,12 @@ int main(int argc, char *argv[])
                 "uTime",
 #ifdef DEMO_MODE
                 currentTimeS
-#else // DEMO_NODE
+#else  // DEMO_NODE
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
 #endif // DEMO_MODE
             );
-            sceneShaders[pingIndex].setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
+            sceneShaders[pingIndex].setVec2(
+                "uRes", (GLfloat)window.width(), (GLfloat)window.height());
             q.render();
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             scenePingProf.endSample();
@@ -240,11 +261,12 @@ int main(int argc, char *argv[])
                 "uTime",
 #ifdef DEMO_MODE
                 currentTimeS
-#else // DEMO_NODE
+#else  // DEMO_NODE
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
 #endif // DEMO_MODE
             );
-            sceneShaders[pongIndex].setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
+            sceneShaders[pongIndex].setVec2(
+                "uRes", (GLfloat)window.width(), (GLfloat)window.height());
             q.render();
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             scenePongProf.endSample();
@@ -255,13 +277,18 @@ int main(int argc, char *argv[])
                 "uTime",
 #ifdef DEMO_MODE
                 currentTimeS
-#else // DEMO_NODE
+#else  // DEMO_NODE
                 gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
 #endif // DEMO_MODE
             );
-            compositeShader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
-            scenePingFbo.bindRead(0, GL_TEXTURE0, compositeShader.getUniformLocation("uScenePingColorDepth"));
-            scenePongFbo.bindRead(0, GL_TEXTURE1, compositeShader.getUniformLocation("uScenePongColorDepth"));
+            compositeShader.setVec2(
+                "uRes", (GLfloat)window.width(), (GLfloat)window.height());
+            scenePingFbo.bindRead(
+                0, GL_TEXTURE0,
+                compositeShader.getUniformLocation("uScenePingColorDepth"));
+            scenePongFbo.bindRead(
+                0, GL_TEXTURE1,
+                compositeShader.getUniformLocation("uScenePongColorDepth"));
             q.render();
             compositeProf.endSample();
         }

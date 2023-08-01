@@ -9,65 +9,69 @@
 
 int main()
 {
-  Window window;
-  if (!window.init(1280, 720, "skunktoy"))
-    return -1;
+    Window window;
+    if (!window.init(1280, 720, "skunktoy"))
+        return -1;
 
-  // Setup imgui
-  GUI gui;
-  gui.init(window.ptr(), window.ctx());
+    // Setup imgui
+    GUI gui;
+    gui.init(window.ptr(), window.ctx());
 
-  Quad q;
+    Quad q;
 
-  // Set up scene
-  std::string vertPath(RES_DIRECTORY);
-  vertPath += "shader/basic_vert.glsl";
-  std::string fragPath(RES_DIRECTORY);
-  fragPath += "shader/basic_frag.glsl";
-  Shader shader("Shader", vertPath, fragPath, "");
+    // Set up scene
+    std::string vertPath(RES_DIRECTORY);
+    vertPath += "shader/basic_vert.glsl";
+    std::string fragPath(RES_DIRECTORY);
+    fragPath += "shader/basic_frag.glsl";
+    Shader shader("Shader", vertPath, fragPath, "");
 
-  Timer reloadTime;
-  Timer globalTime;
-  GpuProfiler sceneProf(5);
-  std::vector<std::pair<std::string, const GpuProfiler *>> profilers = {
-      {"Scene", &sceneProf}};
+    Timer reloadTime;
+    Timer globalTime;
+    GpuProfiler sceneProf(5);
+    std::vector<std::pair<std::string, const GpuProfiler *>> profilers = {
+        {"Scene", &sceneProf}};
 
-  // Run the main loop
-  while (window.open()) {
-    window.startFrame();
+    // Run the main loop
+    while (window.open())
+    {
+        window.startFrame();
 
-    int32_t sceneI = 0;
-    float t = 0;
-    if (window.drawGUI())
-      gui.startFrame(window.height(), sceneI, t, {&shader}, profilers);
+        int32_t sceneI = 0;
+        float t = 0;
+        if (window.drawGUI())
+            gui.startFrame(window.height(), sceneI, t, {&shader}, profilers);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Try reloading the shader every 0.5s
-    if (reloadTime.getSeconds() > 0.5f) {
-      shader.reload();
-      reloadTime.reset();
+        // Try reloading the shader every 0.5s
+        if (reloadTime.getSeconds() > 0.5f)
+        {
+            shader.reload();
+            reloadTime.reset();
+        }
+
+        // TODO: No need to reset before switch back
+        if (gui.useSliderTime())
+            globalTime.reset();
+
+        sceneProf.startSample();
+        shader.bind();
+        shader.setFloat(
+            "uTime",
+            gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds());
+        shader.setVec2(
+            "uRes", (GLfloat)window.width(), (GLfloat)window.height());
+        q.render();
+        sceneProf.endSample();
+
+        if (window.drawGUI())
+            gui.endFrame();
+
+        window.endFrame();
     }
 
-    // TODO: No need to reset before switch back
-    if (gui.useSliderTime())
-      globalTime.reset();
-
-    sceneProf.startSample();
-    shader.bind();
-    shader.setFloat("uTime", gui.useSliderTime() ? gui.sliderTime()
-                                                 : globalTime.getSeconds());
-    shader.setVec2("uRes", (GLfloat)window.width(), (GLfloat)window.height());
-    q.render();
-    sceneProf.endSample();
-
-    if (window.drawGUI())
-      gui.endFrame();
-
-    window.endFrame();
-  }
-
-  gui.destroy();
-  window.destroy();
-  exit(EXIT_SUCCESS);
+    gui.destroy();
+    window.destroy();
+    exit(EXIT_SUCCESS);
 }

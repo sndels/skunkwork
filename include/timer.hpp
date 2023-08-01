@@ -5,16 +5,15 @@
 
 class Timer
 {
-public:
+  public:
     Timer();
-    ~Timer() {}
+    ~Timer() { }
 
     void reset();
     float getSeconds() const;
 
-private:
+  private:
     std::chrono::time_point<std::chrono::system_clock> _start;
-
 };
 
 #endif // TIMER_HPP

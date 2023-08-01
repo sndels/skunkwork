@@ -12,7 +12,7 @@ float noise(vec3 p)
     // Cell fraction
     p -= ip;
     // Cubic smoothing
-    p = p*p*(3 - 2 * p);
+    p = p * p * (3 - 2 * p);
     // Generate noise values for cube corners and mix along axes
     h = mix(fract(sin(h) * 43758.5453), fract(sin(h + s.x) * 43758.5453), p.x);
     h.xy = mix(h.xz, h.yw, p.y);
@@ -20,15 +20,14 @@ float noise(vec3 p)
 }
 
 // Noise with smooth animation
-float snoise(vec3 p)
-{
-    return mix(noise(p - 1.5), noise(p), 0.5);
-}
+float snoise(vec3 p) { return mix(noise(p - 1.5), noise(p), 0.5); }
 
 // Simplified from Physically Based Rendering by Pharr et. al.
-float fbm(vec3 p, float omega, int octaves) {
+float fbm(vec3 p, float omega, int octaves)
+{
     float sum = 0, lambda = 1, o = 1;
-    for (int i = 0; i < octaves; ++i) {
+    for (int i = 0; i < octaves; ++i)
+    {
         sum += o * snoise(lambda * p);
         lambda *= 1.99;
         o *= omega;

@@ -1,7 +1,7 @@
 #version 410
 
-#include "uniforms.glsl"
 #include "hg_sdf.glsl"
+#include "uniforms.glsl"
 
 uniform vec3 dColor;
 

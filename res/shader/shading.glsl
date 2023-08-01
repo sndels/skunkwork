@@ -1,14 +1,12 @@
-struct Material {
+struct Material
+{
     vec3 albedo;
     float metallic;
     float roughness;
 };
 
 // Lambert diffuse term
-vec3 lambertBRFD(vec3 c_diff)
-{
-    return c_diff / PI;
-}
+vec3 lambertBRFD(vec3 c_diff) { return c_diff / PI; }
 
 // GGX distribution function
 float ggx(float NoH, float alpha)
@@ -37,7 +35,8 @@ float schlick_ggx(float NoL, float NoV, float alpha)
 }
 
 // Evaluate the Cook-Torrance specular BRDF
-vec3 cookTorranceBRDF(float NoL, float NoV, float NoH, float VoH, vec3 f0, float roughness)
+vec3 cookTorranceBRDF(
+    float NoL, float NoV, float NoH, float VoH, vec3 f0, float roughness)
 {
     // Match gltf spec
     float alpha = roughness * roughness;
@@ -66,5 +65,7 @@ vec3 evalBRDF(vec3 n, vec3 v, vec3 l, Material m)
     // Match glTF spec
     vec3 c_diff = mix(m.albedo * (1 - 0.04), vec3(0), m.metallic);
 
-    return (lambertBRFD(c_diff) + cookTorranceBRDF(NoL, NoV, NoH, VoH, f0, m.roughness)) * NoL;
+    return (lambertBRFD(c_diff) +
+            cookTorranceBRDF(NoL, NoV, NoH, VoH, f0, m.roughness)) *
+           NoL;
 }

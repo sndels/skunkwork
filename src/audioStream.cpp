@@ -2,34 +2,36 @@
 
 #include <cstdio>
 
-namespace {
-    static float ROW_PER_S = 0.f;
+namespace
+{
+static float ROW_PER_S = 0.f;
 }
 
-void AudioStream::pauseStream(void* data, int32_t flag)
+void AudioStream::pauseStream(void *data, int32_t flag)
 {
     if (flag)
         Mix_PauseMusic();
     else if (Mix_PlayingMusic())
         Mix_ResumeMusic();
-    else {
-        Mix_Music* music = (Mix_Music*)data;
+    else
+    {
+        Mix_Music *music = (Mix_Music *)data;
         Mix_PlayMusic(music, 0);
     }
 }
 
-void AudioStream::setStreamRow(void* /*data*/, int32_t row)
+void AudioStream::setStreamRow(void * /*data*/, int32_t row)
 {
     double const timeS = row / (double)ROW_PER_S;
     Mix_SetMusicPosition(timeS);
 }
 
-int32_t AudioStream::isStreamPlaying(void* /*data*/)
+int32_t AudioStream::isStreamPlaying(void * /*data*/)
 {
     return Mix_PlayingMusic();
 }
 
-bool AudioStream::init(const std::string& filePath, double bpm, int32_t rpb)
+bool AudioStream::init(const std::string &filePath, double bpm, int32_t rpb)
 {
     int audio_rate = 44100;
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
@@ -46,14 +48,17 @@ bool AudioStream::init(const std::string& filePath, double bpm, int32_t rpb)
     }
 
     Mix_QuerySpec(&audio_rate, &audio_format, &audio_channels);
-    printf("Opened audio at %d Hz %d bit%s %s\n", audio_rate,
-        (audio_format&0xFF),
+    printf(
+        "Opened audio at %d Hz %d bit%s %s\n", audio_rate,
+        (audio_format & 0xFF),
         (SDL_AUDIO_ISFLOAT(audio_format) ? " (float)" : ""),
-        (audio_channels > 2) ? "surround" :
-        (audio_channels > 1) ? "stereo" : "mono");
+        (audio_channels > 2)   ? "surround"
+        : (audio_channels > 1) ? "stereo"
+                               : "mono");
 
     _music = Mix_LoadMUS(filePath.c_str());
-    if (_music == nullptr) {
+    if (_music == nullptr)
+    {
         fprintf(stderr, "Failed to open music from %s\n", filePath.c_str());
         fprintf(stderr, "%s\n", SDL_GetError());
         Mix_CloseAudio();
@@ -65,15 +70,9 @@ bool AudioStream::init(const std::string& filePath, double bpm, int32_t rpb)
     return true;
 }
 
-void AudioStream::destroy()
-{
-    Mix_CloseAudio();
-}
+void AudioStream::destroy() { Mix_CloseAudio(); }
 
-Mix_Music* AudioStream::getMusic() const
-{
-    return _music;
-}
+Mix_Music *AudioStream::getMusic() const { return _music; }
 
 void AudioStream::play()
 {
@@ -84,14 +83,12 @@ void AudioStream::play()
     _shouldRestart = false;
 }
 
-bool AudioStream::isPlaying() {
+bool AudioStream::isPlaying()
+{
     return Mix_PlayingMusic() == 1 && Mix_PausedMusic() != 1;
 }
 
-void AudioStream::pause()
-{
-    Mix_PauseMusic();
-}
+void AudioStream::pause() { Mix_PauseMusic(); }
 
 void AudioStream::stop()
 {
@@ -105,7 +102,8 @@ double AudioStream::getRow()
     return timeS * ROW_PER_S;
 }
 
-double AudioStream::getTimeS() {
+double AudioStream::getTimeS()
+{
 
     if (isPlaying())
     {
@@ -142,9 +140,7 @@ void AudioStream::setRow(int32_t row)
 
 AudioStream::AudioStream()
 : _prevTimeStamp{std::chrono::high_resolution_clock::now()}
-{}
-
-AudioStream::~AudioStream()
 {
-    destroy();
 }
+
+AudioStream::~AudioStream() { destroy(); }

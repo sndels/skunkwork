@@ -7,18 +7,18 @@
 
 class Window
 {
-public:
-    Window() {};
-    bool init(int w, int h, const std::string& title, int displayIndex = 0);
+  public:
+    Window(){};
+    bool init(int w, int h, const std::string &title, int displayIndex = 0);
     void destroy();
 
-    Window(const Window& other) = delete;
-    Window(Window&& other);
-    Window operator=(const Window& other) = delete;
+    Window(const Window &other) = delete;
+    Window(Window &&other);
+    Window operator=(const Window &other) = delete;
 
     bool open() const;
     void setClose();
-    SDL_Window* ptr() const;
+    SDL_Window *ptr() const;
     SDL_GLContext ctx() const;
     int width() const;
     int height() const;
@@ -29,11 +29,11 @@ public:
     bool startFrame();
     void endFrame() const;
 
-private:
-    bool handleWindow(SDL_Event const& event);
-    void handleKey(SDL_Event const& event);
+  private:
+    bool handleWindow(SDL_Event const &event);
+    void handleKey(SDL_Event const &event);
 
-    SDL_Window* _window{nullptr};
+    SDL_Window *_window{nullptr};
     SDL_GLContext _context{nullptr};
     int _w{0};
     int _h{0};

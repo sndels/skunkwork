@@ -1,21 +1,22 @@
 #include "window.hpp"
 
-#include <cstdio>
-#include <SDL_video.h>
 #include <SDL_opengl.h>
+#include <SDL_video.h>
+#include <cstdio>
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
 #include <stdio.h>
 
-bool Window::init(int w, int h, const std::string& title, int displayIndex)
+
+bool Window::init(int w, int h, const std::string &title, int displayIndex)
 {
     _w = w;
     _h = h;
     _drawGUI = true;
     GLenum err;
 
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+    {
         fprintf(stderr, "SDL init failed: %s\n", SDL_GetError());
         return false;
     }
@@ -28,11 +29,13 @@ bool Window::init(int w, int h, const std::string& title, int displayIndex)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(
+        SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-
-
-    _window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), _w, _h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    _window = SDL_CreateWindow(
+        title.c_str(), SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
+        SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), _w, _h,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (_window == nullptr)
     {
         fprintf(stderr, "Window create failed: %s\n", SDL_GetError());
@@ -58,7 +61,8 @@ bool Window::init(int w, int h, const std::string& title, int displayIndex)
 
     // Check that GL is happy
     err = glGetError();
-    if(err != GL_NO_ERROR) {
+    if (err != GL_NO_ERROR)
+    {
         fprintf(stderr, "Error initializing GL!\n");
         fprintf(stderr, "Code: %d\n", err);
         goto fail;
@@ -73,58 +77,32 @@ fail:
     return false;
 }
 
-void Window::destroy()
-{
-}
+void Window::destroy() { }
 
-Window::Window(Window&& other) :
-    _window(other._window),
-    _w(other._w),
-    _h(other._h),
-    _drawGUI(other._drawGUI)
+Window::Window(Window &&other)
+: _window(other._window)
+, _w(other._w)
+, _h(other._h)
+, _drawGUI(other._drawGUI)
 {
     other._window = nullptr;
 }
 
-bool Window::open() const
-{
-    return !_shouldClose;
-}
+bool Window::open() const { return !_shouldClose; }
 
-void Window::setClose() 
-{
-    _shouldClose = true;
-}
+void Window::setClose() { _shouldClose = true; }
 
-SDL_Window* Window::ptr() const
-{
-    return _window;
-}
+SDL_Window *Window::ptr() const { return _window; }
 
-SDL_GLContext Window::ctx() const
-{
-    return _context;
-}
+SDL_GLContext Window::ctx() const { return _context; }
 
-int Window::width() const
-{
-    return _w;
-}
+int Window::width() const { return _w; }
 
-int Window::height() const
-{
-    return _h;
-}
+int Window::height() const { return _h; }
 
-bool Window::drawGUI() const
-{
-    return _drawGUI;
-}
+bool Window::drawGUI() const { return _drawGUI; }
 
-bool Window::playPausePressed() const
-{
-    return _playPausePressed;
-}
+bool Window::playPausePressed() const { return _playPausePressed; }
 
 bool Window::startFrame()
 {
@@ -132,19 +110,21 @@ bool Window::startFrame()
     _playPausePressed = false;
 
     SDL_Event event;
-    while(SDL_PollEvent(&event)) {
-        switch (event.type) {
-            case SDL_QUIT:
-                _shouldClose = true;
-                break;
-            case SDL_KEYDOWN:
-                handleKey(event);
-                break;
-            case SDL_WINDOWEVENT:
-                resized |= handleWindow(event);
-                break;
-            default:
-                break;
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            _shouldClose = true;
+            break;
+        case SDL_KEYDOWN:
+            handleKey(event);
+            break;
+        case SDL_WINDOWEVENT:
+            resized |= handleWindow(event);
+            break;
+        default:
+            break;
         }
         ImGui_ImplSDL2_ProcessEvent(&event);
     }
@@ -152,47 +132,48 @@ bool Window::startFrame()
     return resized;
 }
 
-void Window::endFrame() const
-{
-    SDL_GL_SwapWindow(_window);
-}
+void Window::endFrame() const { SDL_GL_SwapWindow(_window); }
 
-bool Window::handleWindow(SDL_Event const& event)
+bool Window::handleWindow(SDL_Event const &event)
 {
     bool resized = false;
 
-    switch (event.window.event) {
-        case SDL_WINDOWEVENT_RESIZED:
-        case SDL_WINDOWEVENT_SIZE_CHANGED:
-            _w = event.window.data1;
-            _h = event.window.data2;
-            glViewport(0, 0, _w, _h);
-            resized = true;
-            break;
-        default:
-            break;
+    switch (event.window.event)
+    {
+    case SDL_WINDOWEVENT_RESIZED:
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
+        _w = event.window.data1;
+        _h = event.window.data2;
+        glViewport(0, 0, _w, _h);
+        resized = true;
+        break;
+    default:
+        break;
     }
 
     return resized;
 }
 
-void Window::handleKey(SDL_Event const& event)
+void Window::handleKey(SDL_Event const &event)
 {
     // Skip key events when e.g. editing an input field
-    if (!ImGui::IsAnyItemActive()) {
-        if (event.key.state == SDL_PRESSED) {
-            switch (event.key.keysym.sym) {
-                case SDLK_ESCAPE:
-                    _shouldClose= true;
-                    break;
-                case SDLK_g:
-                    _drawGUI = !_drawGUI;
-                    break;
-                case SDLK_SPACE:
-                    _playPausePressed = true;
-                    break;
-                default:
-                    break;
+    if (!ImGui::IsAnyItemActive())
+    {
+        if (event.key.state == SDL_PRESSED)
+        {
+            switch (event.key.keysym.sym)
+            {
+            case SDLK_ESCAPE:
+                _shouldClose = true;
+                break;
+            case SDLK_g:
+                _drawGUI = !_drawGUI;
+                break;
+            case SDLK_SPACE:
+                _playPausePressed = true;
+                break;
+            default:
+                break;
             }
         }
     }

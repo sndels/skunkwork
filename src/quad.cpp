@@ -1,8 +1,8 @@
 #include "quad.hpp"
 
-Quad::Quad() :
-    _vao(0),
-    _vbo(0)
+Quad::Quad()
+: _vao(0)
+, _vbo(0)
 {
     // Generate arrays
     glGenVertexArrays(1, &_vao);
@@ -11,18 +11,14 @@ Quad::Quad() :
     glBindVertexArray(_vao);
 
     // Upload vertex data
-    GLfloat verts[18] = {-1.f, -1.f, 0.f,
-                          1.f, -1.f, 0.f,
-                          1.f,  1.f, 0.f,
-                          1.f,  1.f, 0.f,
-                         -1.f,  1.f, 0.f,
-                         -1.f, -1.f, 0.f };
+    GLfloat verts[18] = {-1.f, -1.f, 0.f, 1.f,  -1.f, 0.f, 1.f,  1.f,  0.f,
+                         1.f,  1.f,  0.f, -1.f, 1.f,  0.f, -1.f, -1.f, 0.f};
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 18, verts, GL_STATIC_DRAW);
 
     // Set vertex attributes
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
     // Unbinds for safety, vao first!
     glBindVertexArray(0);
@@ -35,9 +31,9 @@ Quad::~Quad()
     glDeleteBuffers(1, &_vbo);
 }
 
-Quad::Quad(Quad&& other) :
-    _vao(other._vao),
-    _vbo(other._vbo)
+Quad::Quad(Quad &&other)
+: _vao(other._vao)
+, _vbo(other._vbo)
 {
     other._vao = 0;
     other._vbo = 0;

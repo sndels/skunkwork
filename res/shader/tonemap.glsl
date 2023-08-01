@@ -1,5 +1,8 @@
 // sRGB, linear space conversions
-float stol(float x) { return (x <= 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4)); }
+float stol(float x)
+{
+    return (x <= 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4));
+}
 vec3 stol(vec3 c) { return vec3(stol(c.x), stol(c.y), stol(c.z)); }
 
 // From Krzysztof Narkowicz
@@ -21,4 +24,3 @@ vec3 tonemap(vec3 color)
     vec3 outColor = ACESFilm(color * exposure);
     return pow(outColor, vec3(1 / gamma));
 }
-

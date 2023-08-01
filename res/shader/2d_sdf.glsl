@@ -6,7 +6,7 @@
 #endif // !PI
 
 #ifndef INF
-#define INF (1.0/0.0)
+#define INF (1.0 / 0.0)
 #endif // !INF
 
 #ifndef saturate
@@ -18,25 +18,13 @@ void pR(inout vec2 p, float a)
     p = mat2(cos(a), sin(a), -sin(a), cos(a)) * p;
 }
 
-float fOpUnion(float d0, float d1)
-{
-    return min(d0, d1);
-}
+float fOpUnion(float d0, float d1) { return min(d0, d1); }
 
-float fOpDifference(float d0, float d1)
-{
-    return max(d0, -d1);
-}
+float fOpDifference(float d0, float d1) { return max(d0, -d1); }
 
-float fOpIntersection(float d0, float d1)
-{
-    return max(d0, d1);
-}
+float fOpIntersection(float d0, float d1) { return max(d0, d1); }
 
-float dCircle(vec2 p, float r)
-{
-    return length(p) - r;
-}
+float dCircle(vec2 p, float r) { return length(p) - r; }
 
 float dRect(vec2 p, vec2 size)
 {
@@ -44,15 +32,9 @@ float dRect(vec2 p, vec2 size)
     return max(d.x, d.y);
 }
 
-float dLine(vec2 p, float r)
-{
-    return length(p.y) - r;
-}
+float dLine(vec2 p, float r) { return length(p.y) - r; }
 
-float dHalfSpace(float p, float r)
-{
-    return p - r;
-}
+float dHalfSpace(float p, float r) { return p - r; }
 
 float dHalfCircle(vec2 p, float r)
 {
@@ -68,7 +50,7 @@ float dCharA(vec2 p)
 {
     float d = dCircle(p - vec2(.0, .0), 1.);
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
-    d = fOpUnion(d, dRect(p - vec2(.8 , -.5), vec2(.2, 0.5)));
+    d = fOpUnion(d, dRect(p - vec2(.8, -.5), vec2(.2, 0.5)));
     return d;
 }
 
@@ -76,7 +58,7 @@ float dCharB(vec2 p)
 {
     float d = dCircle(p - vec2(.0, .0), 1.);
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
-    d = fOpUnion(d, dRect(p - vec2(-.8 , 1.25), vec2(.2, 1.25)));
+    d = fOpUnion(d, dRect(p - vec2(-.8, 1.25), vec2(.2, 1.25)));
     return d;
 }
 
@@ -84,13 +66,13 @@ float dCharC(vec2 p)
 {
     float d = dCircle(p, 1.);
     d = fOpDifference(d, dCircle(p, .6));
-    vec2 pp = p - vec2(.85 , .4);
+    vec2 pp = p - vec2(.85, .4);
     pR(pp, -PI / 7);
     d = fOpDifference(d, dRect(pp, vec2(.65, .25)));
-    pp = p - vec2(.85 , -.4);
+    pp = p - vec2(.85, -.4);
     pR(pp, PI / 7);
     d = fOpDifference(d, dRect(pp, vec2(.65, .25)));
-    d = fOpDifference(d, dRect(p - vec2(1.25 , -.1), vec2(.75, .4)));
+    d = fOpDifference(d, dRect(p - vec2(1.25, -.1), vec2(.75, .4)));
     return d;
 }
 
@@ -98,7 +80,7 @@ float dCharD(vec2 p)
 {
     float d = dCircle(p - vec2(.0, .0), 1.);
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
-    d = fOpUnion(d, dRect(p - vec2(.79 , 1.25), vec2(.2, 1.25)));
+    d = fOpUnion(d, dRect(p - vec2(.79, 1.25), vec2(.2, 1.25)));
     return d;
 }
 
@@ -106,8 +88,8 @@ float dCharE(vec2 p)
 {
     float d = dCircle(p, 1.);
     d = fOpDifference(d, dCircle(p, .6));
-    d = fOpDifference(d, dRect(p - vec2(.85 , -.2), vec2(.65, .2)));
-    vec2 pp = p - vec2(.85 , -.4);
+    d = fOpDifference(d, dRect(p - vec2(.85, -.2), vec2(.65, .2)));
+    vec2 pp = p - vec2(.85, -.4);
     pR(pp, PI / 7);
     d = fOpDifference(d, dRect(pp, vec2(.65, .25)));
     d = fOpUnion(d, dRect(p - vec2(.01, .1), vec2(.9, .1)));
@@ -119,10 +101,9 @@ float dCharF(vec2 p)
     float d = dCircle(p - vec2(-.2, 1.5), .8);
     d = fOpDifference(d, dCircle(p - vec2(-.19, 1.45), .414));
     d = fOpDifference(d, dRect(p - vec2(.3, .8), vec2(.9, .75)));
-    d = fOpUnion(d, dRect(p - vec2(-.8 , .2), vec2(.2, 1.2)));
-    d = fOpUnion(d, dRect(p - vec2(-.2 , .5), vec2(.5, .2)));
+    d = fOpUnion(d, dRect(p - vec2(-.8, .2), vec2(.2, 1.2)));
+    d = fOpUnion(d, dRect(p - vec2(-.2, .5), vec2(.5, .2)));
     return d;
-
 }
 
 float dCharG(vec2 p)
@@ -132,7 +113,7 @@ float dCharG(vec2 p)
     d = fOpDifference(d, dRect(p - vec2(-.5, -.8), vec2(1.9, .75)));
     d = fOpUnion(d, dCircle(p - vec2(.0, .0), 1.));
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
-    d = fOpUnion(d, dRect(p - vec2(.8 , -.8), vec2(.2, .8)));
+    d = fOpUnion(d, dRect(p - vec2(.8, -.8), vec2(.2, .8)));
     return d;
 }
 
@@ -141,8 +122,8 @@ float dCharH(vec2 p)
     float d = dCircle(p - vec2(.0, .0), 1.);
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
     d = fOpDifference(d, dRect(p - vec2(-.5, -.75), vec2(1.9, .75)));
-    d = fOpUnion(d, dRect(p - vec2(-.8 , .75), vec2(.2, 1.75)));
-    d = fOpUnion(d, dRect(p - vec2(.8 , -.5), vec2(.2, .5)));
+    d = fOpUnion(d, dRect(p - vec2(-.8, .75), vec2(.2, 1.75)));
+    d = fOpUnion(d, dRect(p - vec2(.8, -.5), vec2(.2, .5)));
     return d;
 }
 
@@ -181,7 +162,6 @@ float dCharK(vec2 p)
     return d;
 }
 
-
 float dCharL(vec2 p)
 {
     float d = dRect(p - vec2(.0, 0.75), vec2(.2, 1.4));
@@ -199,7 +179,7 @@ float dCharM(vec2 p)
     d = fOpDifference(d, dCircle(p - vec2(-.4, .5), .2));
     d = fOpDifference(d, dCircle(p - vec2(.4, .5), .2));
     d = fOpDifference(d, dRect(p - vec2(.25, -.2), vec2(2.9, .75)));
-    d = fOpUnion(d, dRect(p - vec2(-.8 , -.225), vec2(.2, .775)));
+    d = fOpUnion(d, dRect(p - vec2(-.8, -.225), vec2(.2, .775)));
     d = fOpUnion(d, dRect(p - vec2(.0, -.225), vec2(.2, .775)));
     d = fOpUnion(d, dRect(p - vec2(0.8, -.225), vec2(.2, .775)));
     return d;
@@ -210,7 +190,7 @@ float dCharN(vec2 p)
     float d = dCircle(p - vec2(.0, .0), 1.);
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
     d = fOpDifference(d, dRect(p - vec2(.25, -.65), vec2(2.9, .75)));
-    d = fOpUnion(d, dRect(p - vec2(-.8 , -.45), vec2(.2, .55)));
+    d = fOpUnion(d, dRect(p - vec2(-.8, -.45), vec2(.2, .55)));
     d = fOpUnion(d, dRect(p - vec2(.8, -.45), vec2(.2, .55)));
     return d;
 }
@@ -226,7 +206,7 @@ float dCharP(vec2 p)
 {
     float d = dCircle(p - vec2(.0, .0), 1.);
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
-    d = fOpUnion(d, dRect(p - vec2(-.8 , -1.15), vec2(.2, 1.1)));
+    d = fOpUnion(d, dRect(p - vec2(-.8, -1.15), vec2(.2, 1.1)));
     return d;
 }
 
@@ -234,7 +214,7 @@ float dCharQ(vec2 p)
 {
     float d = dCircle(p - vec2(.0, .0), 1.);
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
-    d = fOpUnion(d, dRect(p - vec2(.8 , -1.15), vec2(.2, 1.1)));
+    d = fOpUnion(d, dRect(p - vec2(.8, -1.15), vec2(.2, 1.1)));
     return d;
 }
 
@@ -243,10 +223,10 @@ float dCharR(vec2 p)
     float d = dCircle(p - vec2(.2, .0), 1.);
     d = fOpDifference(d, dCircle(p - vec2(.2, .0), .6));
     d = fOpDifference(d, dRect(p - vec2(.45, -.65), vec2(.9, .75)));
-    vec2 pp = p - vec2(1.05 , .3);
+    vec2 pp = p - vec2(1.05, .3);
     pR(pp, -PI / 7);
     d = fOpDifference(d, dRect(pp, vec2(.65, .4)));
-    d = fOpUnion(d, dRect(p - vec2(-.6 , .0), vec2(.2, 1.)));
+    d = fOpUnion(d, dRect(p - vec2(-.6, .0), vec2(.2, 1.)));
     return d;
 }
 
@@ -260,7 +240,7 @@ float dCharS(vec2 p)
 
     float dBottom = dCircle(p - vec2(-.0, -.4), .7);
     dBottom = fOpDifference(dBottom, dCircle(p - vec2(-.0, -.4), .35));
-    pp = p - vec2(-.9 , -.4);
+    pp = p - vec2(-.9, -.4);
     pR(pp, -PI / 5);
     dBottom = fOpDifference(dBottom, dRect(pp, vec2(.9, .4)));
 
@@ -284,7 +264,7 @@ float dCharU(vec2 p)
     d = fOpDifference(d, dCircle(p - vec2(.0, .0), .6));
     d = fOpDifference(d, dRect(p - vec2(.25, .65), vec2(2.9, .7)));
     d = fOpUnion(d, dRect(p - vec2(-.8, .47), vec2(.2, .53)));
-    d = fOpUnion(d, dRect(p - vec2(.8 , .47), vec2(.2, .53)));
+    d = fOpUnion(d, dRect(p - vec2(.8, .47), vec2(.2, .53)));
     return d;
 }
 
@@ -334,7 +314,8 @@ float dCharY(vec2 p)
     d = fOpDifference(d, dRect(pp - vec2(.4, -.7), vec2(.55, 1.2)));
     d = fOpUnion(d, dRect(pp - vec2(-.3, .25), vec2(.2, 2.3)));
     d = fOpDifference(d, dRect(p - vec2(.0, 1.4), vec2(1.5, .4)));
-    d = fOpDifference(d, dRect(p - vec2(.0, FONT_DESCENDERS-0.4), vec2(1.5, .4)));
+    d = fOpDifference(
+        d, dRect(p - vec2(.0, FONT_DESCENDERS - 0.4), vec2(1.5, .4)));
     return d;
 }
 
@@ -346,7 +327,7 @@ float dCharZ(vec2 p)
     pR(pp, PI / 5);
     d = fOpDifference(d, dRect(pp - vec2(0.4, 1.), vec2(.2, 1.)));
     d = fOpDifference(d, dRect(pp - vec2(-0.4, -1.), vec2(.2, 1.)));
-    d = fOpUnion(d, dRect(pp , vec2(.2, 1.5)));
+    d = fOpUnion(d, dRect(pp, vec2(.2, 1.5)));
     d = fOpDifference(d, dRect(p - vec2(.0, -1.4), vec2(1.25, .4)));
     d = fOpDifference(d, dRect(p - vec2(.0, 1.4), vec2(1.25, .4)));
     return d;
@@ -380,10 +361,7 @@ float dCharUnderscore(vec2 p)
     return d;
 }
 
-float dCharSpace(vec2 p)
-{
-    return INF;
-}
+float dCharSpace(vec2 p) { return INF; }
 
 float dCharBox(vec2 p)
 {

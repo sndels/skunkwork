@@ -13,23 +13,22 @@
 
 class GUI
 {
-public:
+  public:
     GUI();
 
-    void init(SDL_Window* window, SDL_GLContext context);
+    void init(SDL_Window *window, SDL_GLContext context);
     void destroy();
     bool useSliderTime() const;
     float sliderTime() const;
 
-    void startFrame(int windowHeight,
-                    int32_t& sceneOverride,
-                    float& timeS,
-                    std::vector<Shader*> const& shaders,
-                    const std::vector<std::pair<std::string, const GpuProfiler*>>& timers);
+    void startFrame(
+        int windowHeight, int32_t &sceneOverride, float &timeS,
+        std::vector<Shader *> const &shaders,
+        const std::vector<std::pair<std::string, const GpuProfiler *>> &timers);
     void endFrame();
 
-private:
-    SDL_Window* _window{nullptr};
+  private:
+    SDL_Window *_window{nullptr};
     bool _useSliderTime{false};
     float _sliderTime{0.f};
 };

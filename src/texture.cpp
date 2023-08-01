@@ -2,36 +2,34 @@
 
 #include <cstdio>
 
-Texture::Texture(uint32_t w, uint32_t h, TextureParams params) :
-    _texID(0),
-    _params(params)
+Texture::Texture(uint32_t w, uint32_t h, TextureParams params)
+: _texID(0)
+, _params(params)
 {
     glGenTextures(1, &_texID);
     glBindTexture(GL_TEXTURE_2D, _texID);
-    glTexImage2D(GL_TEXTURE_2D, 0, params.internalFormat, w, h, 0,
-                 params.inputFormat, params.type, 0);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, params.internalFormat, w, h, 0, params.inputFormat,
+        params.type, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.minFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.magFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrapT);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-
     GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
+    if (error != GL_NO_ERROR)
+    {
         printf("[texture] Error creating texture\n");
         printf("[texture] Error code: %u\n", error);
     }
 }
 
-Texture::~Texture()
-{
-    glDeleteTextures(1, &_texID);
-}
+Texture::~Texture() { glDeleteTextures(1, &_texID); }
 
-Texture::Texture(Texture&& other) :
-    _texID(other._texID),
-    _params(other._params)
+Texture::Texture(Texture &&other)
+: _texID(other._texID)
+, _params(other._params)
 {
     other._texID = 0;
 }
@@ -51,18 +49,17 @@ void Texture::bindRead(GLenum texUnit, GLint uniform)
 void Texture::resize(uint32_t w, uint32_t h)
 {
     glBindTexture(GL_TEXTURE_2D, _texID);
-    glTexImage2D(GL_TEXTURE_2D, 0, _params.internalFormat, w, h, 0,
-                 _params.inputFormat, _params.type, 0);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, _params.internalFormat, w, h, 0, _params.inputFormat,
+        _params.type, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
+    if (error != GL_NO_ERROR)
+    {
         printf("[texture] Error resizing texture\n");
         printf("[texture] Error code: %u", error);
     }
 }
 
-void Texture::genMipmap()
-{
-    glGenerateTextureMipmap(_texID);
-}
+void Texture::genMipmap() { glGenerateTextureMipmap(_texID); }

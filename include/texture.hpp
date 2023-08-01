@@ -17,23 +17,22 @@ struct TextureParams
 
 class Texture
 {
-public:
+  public:
     Texture(uint32_t w, uint32_t h, TextureParams params);
     ~Texture();
 
-    Texture(const Texture& other) = delete;
-    Texture(Texture&& other);
-    Texture operator=(const Texture& other) = delete;
+    Texture(const Texture &other) = delete;
+    Texture(Texture &&other);
+    Texture operator=(const Texture &other) = delete;
 
     void bindWrite(GLenum attach);
     void bindRead(GLenum texUnit, GLint uniform);
     void resize(uint32_t w, uint32_t h);
     void genMipmap();
 
-private:
-    GLuint        _texID;
+  private:
+    GLuint _texID;
     TextureParams _params;
-
 };
 
 #endif // TEXTURE_HPP

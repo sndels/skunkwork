@@ -8,27 +8,27 @@
 
 class FrameBuffer
 {
-public:
-    FrameBuffer(uint32_t w, uint32_t h, const std::vector<TextureParams>& texParams,
-                GLenum depthFormat = 0, GLenum depthAttachment = 0);
+  public:
+    FrameBuffer(
+        uint32_t w, uint32_t h, const std::vector<TextureParams> &texParams,
+        GLenum depthFormat = 0, GLenum depthAttachment = 0);
     ~FrameBuffer();
 
-    FrameBuffer(const FrameBuffer& other) = delete;
-    FrameBuffer(FrameBuffer&& other);
-    FrameBuffer operator=(const FrameBuffer& other) = delete;
+    FrameBuffer(const FrameBuffer &other) = delete;
+    FrameBuffer(FrameBuffer &&other);
+    FrameBuffer operator=(const FrameBuffer &other) = delete;
 
     void bindWrite();
     void bindRead(uint32_t texNum, GLenum texUnit, GLint uniforms);
     void genMipmap(uint32_t texNum);
     void resize(uint32_t w, uint32_t h);
 
-private:
-    GLuint                      _fbo;
-    std::vector<GLuint>         _texIDs;
-    std::vector<TextureParams>  _texParams;
-    GLuint                      _depthRbo;
-    GLenum                      _depthFormat;
-
+  private:
+    GLuint _fbo;
+    std::vector<GLuint> _texIDs;
+    std::vector<TextureParams> _texParams;
+    GLuint _depthRbo;
+    GLenum _depthFormat;
 };
 
 #endif // FRAMEBUFFER_HPP

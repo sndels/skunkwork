@@ -1,13 +1,11 @@
 #include "timer.hpp"
 
-Timer::Timer() :
-    _start(std::chrono::system_clock::now())
-{}
-
-void Timer::reset()
+Timer::Timer()
+: _start(std::chrono::system_clock::now())
 {
-    _start = std::chrono::system_clock::now();
 }
+
+void Timer::reset() { _start = std::chrono::system_clock::now(); }
 
 float Timer::getSeconds() const
 {

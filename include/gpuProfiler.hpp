@@ -6,19 +6,18 @@
 
 class GpuProfiler
 {
-public:
+  public:
     GpuProfiler(uint32_t window);
-    ~GpuProfiler() {}
+    ~GpuProfiler() { }
 
     void startSample();
     void endSample();
     float getAvg() const;
 
-private:
-    GLuint             _queryIDs[2];
-    bool               _backActive;
+  private:
+    GLuint _queryIDs[2];
+    bool _backActive;
     std::vector<float> _times;
-
 };
 
 #endif // GPUPROFILER_HPP
