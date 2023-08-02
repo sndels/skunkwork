@@ -12,7 +12,7 @@ A lightweight framework for fooling around with GLSL-shaders, mainly designed fo
   * Auto-reloading shaders when sources are saved
   * Gpu-"profiler"
     * Timing instances can't be interleaved because GL_TIMESTAMP doesn't work on OSX
-  * Music playback and sync using BASS
+  * Music playback and sync using SDL_mixer
   * Rocket-interface
     * `float` uniforms using `r*` Hungarian notation are picked up dynamically
   * Mercury's [hg_sdf](http://mercury.sexy/hg_sdf) included for CSG
@@ -26,4 +26,4 @@ There are two builds: `skunkwork` holds all the bells and whistles while `skunkt
 Building requires SDL dependencies and on linux `libasound2-dev`. [SDL](https://github.com/libsdl-org/SDL.git), [SDL_mixer](https://github.com/libsdl-org/SDL_mixer), [dear imgui](https://github.com/ocornut/imgui), [Rocket](https://github.com/rocket/rocket) and [gl3w](https://github.com/sndels/libgl3w) are submodules with their respective licenses.
 
 ## Building
-The CMake-build should work™ on OSX, Linux and Windows 10 (Visual Studio 2017) using cmake.
+The CMake-build should work™ on Linux (Ninja) and Windows 10 (Visual Studio 2022).
