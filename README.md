@@ -4,18 +4,22 @@
 A lightweight framework for fooling around with GLSL-shaders, mainly designed for demos. Current features:
   * Includes in glsl
     * nesting supported
-    * error lines parsed per file on nvidia and intel drivers
+    * error lines parsed into vscode links per file on some drivers
+      * filepath and raw error line otherwise
   * Dynamic uniform edit UI
     * `d*` Hungarian notation uniforms are picked up
     * `float`, `vec2` and `vec3` currently supported
-  * Log window with profiling and shader info
-  * Auto-reloading shaders when sources are saved
+  * Auto-reloading shaders when sources change
   * Gpu-"profiler"
     * Timing instances can't be interleaved because GL_TIMESTAMP doesn't work on OSX
   * Music playback and sync using SDL_mixer
   * Rocket-interface
     * `float` uniforms using `r*` Hungarian notation are picked up dynamically
   * Mercury's [hg_sdf](http://mercury.sexy/hg_sdf) included for CSG
+  * Basic built-in shaders
+     * noise, prng
+     * physically based BRDF for shading
+     * SDF font rendering
 
 I have used [emoon's](https://github.com/emoon/rocket) as my Rocket-server.
 
