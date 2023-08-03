@@ -80,8 +80,8 @@ class Shader
     void setRocketUniforms(double syncRow);
 #endif // ROCKET
 
-    Vendor _vendor;
     GLuint _progID;
+    Vendor _vendor;
     std::vector<std::vector<std::string>> _filePaths;
     std::vector<std::vector<time_t>> _fileMods;
     std::unordered_map<std::string, std::pair<UniformType, GLint>> _uniforms;
