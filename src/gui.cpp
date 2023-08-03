@@ -85,7 +85,7 @@ void GUI::startFrame(
     if (ImGui::BeginCombo(
             "##ShaderDropdown", shaders[comboIndex]->name().c_str(), 0))
     {
-        for (auto i = 0; i < shaders.size(); ++i)
+        for (auto i = 0u; i < shaders.size(); ++i)
         {
             auto *s = shaders[i];
             assert(s != nullptr);
