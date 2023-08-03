@@ -80,8 +80,8 @@ void GUI::startFrame(
         timeS = 0.f;
     _sliderTime = timeS;
 
-    static int comboIndex = 0;
-    comboIndex = std::clamp(comboIndex, 0, (int)shaders.size() - 1);
+    static size_t comboIndex = 0;
+    comboIndex = std::min(comboIndex, shaders.size() - 1);
     if (ImGui::BeginCombo(
             "##ShaderDropdown", shaders[comboIndex]->name().c_str(), 0))
     {
