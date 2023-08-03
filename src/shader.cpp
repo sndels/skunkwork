@@ -255,7 +255,7 @@ GLuint Shader::loadProgram(
     GLint uCount;
     glGetProgramiv(progID, GL_ACTIVE_UNIFORMS, &uCount);
     _uniforms.clear();
-    for (GLuint i = 0; i < uCount; ++i)
+    for (GLint i = 0; i < uCount; ++i)
     {
         char name[64];
         GLenum glType;
