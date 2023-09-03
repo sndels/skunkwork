@@ -23,6 +23,13 @@ A lightweight framework for fooling around with GLSL-shaders, mainly designed fo
 
 I have used [emoon's](https://github.com/emoon/rocket) as my Rocket-server.
 
+## Releases
+
+* [Vapor](https://www.youtube.com/watch?v=4k-BJig1lK8) - sndels
+* [Veipör](https://www.youtube.com/watch?v=8B8k2klhGAo) - fugtional
+* [Cubnature](https://www.youtube.com/watch?v=jPcddtRBYu8) - as graffa bois
+* [Rekursiivinen Templete](https://www.youtube.com/watch?v=NA99MrZvlBM) - as graffa bois
+
 ## Build targets
 There are two builds: `skunkwork` holds all the bells and whistles while `skunktoy` drops Rocket and audio integration for more minimalist shader tinkering.
 
