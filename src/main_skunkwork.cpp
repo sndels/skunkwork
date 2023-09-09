@@ -34,8 +34,21 @@ static struct sync_cb audioSync = {
 #define XRES 1920
 #define YRES 1080
 
+#if defined(DEMO_MODE) && defined(_WIN32)
+int APIENTRY WinMain(
+    HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
+{
+    (void)hInstance;
+    (void)hPrevInstance;
+    (void)lpCmdLine;
+    (void)nCmdShow;
+
+    int argc = __argc;
+    char **argv = __argv;
+#else  // !DEMO_MODE || !_WIN32
 int main(int argc, char *argv[])
 {
+#endif // DEMO_MODE && _WIN32
     int displayIndex = 0;
     if (argc == 2)
     {

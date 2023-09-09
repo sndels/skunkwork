@@ -5,11 +5,15 @@ project(skunkwork)
 # Get built dynamic libs next to the exe
 option(DISTRIBUTE_DEMO "Compile distributable" OFF)
 
-if (DISTRIBUTE_DEMO)
+if(DISTRIBUTE_DEMO)
     # Set relative paths for shared libraries
     set(CMAKE_INSTALL_RPATH $ORIGIN)
+
     # Set relative path to distributable res directory
     add_definitions(-DDEMO_MODE -DRES_DIRECTORY="./res/")
+
+    # Compile demo as a win32 app to avoid issues with it losing focus because of the opened console window
+    set(WIN32_DEF WIN32)
 else()
     # Set absolute path to res directory
     add_definitions(-DRES_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/res/")
@@ -27,7 +31,7 @@ add_subdirectory(include)
 add_subdirectory(src)
 
 # Set up project targets
-add_executable(skunkwork ${SKUNKWORK_SOURCES})
+add_executable(skunkwork ${WIN32_DEF} ${SKUNKWORK_SOURCES})
 target_compile_features(skunkwork
     PRIVATE
     cxx_std_17
@@ -36,8 +40,11 @@ target_compile_features(skunkwork
 if(MSVC)
     target_compile_options(skunkwork
         PRIVATE
-        /Wall
+
+        # /Wall is very very pedantic
+        /W4
     )
+    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
 else()
     target_compile_options(skunkwork
         PRIVATE
