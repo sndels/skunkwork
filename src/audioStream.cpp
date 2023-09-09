@@ -65,7 +65,7 @@ bool AudioStream::init(const std::string &filePath, double bpm, int32_t rpb)
         return false;
     }
 
-    ROW_PER_S = bpm / 60.f * (float)rpb;
+    ROW_PER_S = (float)bpm / 60.f * (float)rpb;
     _shouldRestart = false;
     return true;
 }

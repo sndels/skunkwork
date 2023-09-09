@@ -13,7 +13,7 @@ FrameBuffer::FrameBuffer(
 
     std::vector<GLenum> drawBuffers;
     _texIDs.resize(texParams.size());
-    glGenTextures(texParams.size(), _texIDs.data());
+    glGenTextures((GLsizei)texParams.size(), _texIDs.data());
     for (auto i = 0u; i < texParams.size(); ++i)
     {
         _texParams.emplace_back(texParams[i]);
@@ -35,7 +35,7 @@ FrameBuffer::FrameBuffer(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, _texIDs[i], 0);
         drawBuffers.emplace_back(GL_COLOR_ATTACHMENT0 + i);
     }
-    glDrawBuffers(drawBuffers.size(), drawBuffers.data());
+    glDrawBuffers((GLsizei)drawBuffers.size(), drawBuffers.data());
 
     if (depthFormat != 0 || depthAttachment != 0)
     {
@@ -60,7 +60,7 @@ FrameBuffer::FrameBuffer(
 
 FrameBuffer::~FrameBuffer()
 {
-    glDeleteTextures(_texIDs.size(), _texIDs.data());
+    glDeleteTextures((GLsizei)_texIDs.size(), _texIDs.data());
     glDeleteFramebuffers(1, &_fbo);
     glDeleteRenderbuffers(1, &_depthRbo);
 }

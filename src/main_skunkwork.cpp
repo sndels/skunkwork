@@ -5,7 +5,6 @@
 #include <sync.h>
 #include <track.h>
 
-
 #include "audioStream.hpp"
 #include "frameBuffer.hpp"
 #include "gpuProfiler.hpp"
@@ -15,7 +14,6 @@
 #include "timer.hpp"
 #include "window.hpp"
 #include <cstdio>
-
 
 // Comment out to compile in demo-mode, so close when music stops etc.
 // #define DEMO_MODE
@@ -198,7 +196,7 @@ int main(int argc, char *argv[])
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        float const currentTimeS = AudioStream::getInstance().getTimeS();
+        float const currentTimeS = (float)AudioStream::getInstance().getTimeS();
 #ifndef DEMO_MODE
         if (window.drawGUI())
         {
@@ -208,8 +206,7 @@ int main(int argc, char *argv[])
             for (Shader &s : sceneShaders)
                 shaders.push_back(&s);
 
-            gui.startFrame(
-                window.height(), overrideIndex, uiTimeS, shaders, profilers);
+            gui.startFrame(overrideIndex, uiTimeS, shaders, profilers);
             overrideIndex =
                 std::clamp(overrideIndex, -1, (int32_t)sceneShaders.size() - 1);
 

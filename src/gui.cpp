@@ -50,8 +50,7 @@ bool GUI::useSliderTime() const { return _useSliderTime; }
 float GUI::sliderTime() const { return _sliderTime; }
 
 void GUI::startFrame(
-    int windowHeight, int32_t &sceneOverride, float &timeS,
-    std::vector<Shader *> const &shaders,
+    int32_t &sceneOverride, float &timeS, std::vector<Shader *> const &shaders,
     const std::vector<std::pair<std::string, const GpuProfiler *>> &timers)
 {
     assert(_window != nullptr);
