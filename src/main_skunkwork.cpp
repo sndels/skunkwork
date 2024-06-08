@@ -32,6 +32,28 @@ static struct sync_cb audioSync = {
 #define XRES 1920
 #define YRES 1080
 
+#ifdef DEMO_MODE
+
+#define UPDATE_COMMON_UNIFORMS(shader)                                         \
+    do                                                                         \
+    {                                                                          \
+        shader.setFloat("uTime", currentTimeS);                                \
+        shader.setVec2(                                                        \
+            "uRes", (GLfloat)window.width(), (GLfloat)window.height());        \
+    } while (0)
+
+#else // !DEMO_NODE
+#define UPDATE_COMMON_UNIFORMS(shader)                                         \
+    do                                                                         \
+    {                                                                          \
+        shader.setFloat(                                                       \
+            "uTime",                                                           \
+            gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()); \
+        shader.setVec2(                                                        \
+            "uRes", (GLfloat)window.width(), (GLfloat)window.height());        \
+    } while (0)
+#endif // DEMO_MODE
+
 #if defined(DEMO_MODE) && defined(_WIN32)
 int APIENTRY WinMain(
     HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
@@ -231,16 +253,7 @@ int main(int argc, char *argv[])
         {
             scenePingProf.startSample();
             sceneShaders[overrideIndex].bind(syncRow);
-            sceneShaders[overrideIndex].setFloat(
-                "uTime",
-#ifdef DEMO_MODE
-                currentTimeS
-#else  // DEMO_NODE
-                gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
-#endif // DEMO_MODE
-            );
-            sceneShaders[overrideIndex].setVec2(
-                "uRes", (GLfloat)window.width(), (GLfloat)window.height());
+            UPDATE_COMMON_UNIFORMS(sceneShaders[overrideIndex]);
             q.render();
             scenePingProf.endSample();
         }
@@ -248,36 +261,26 @@ int main(int argc, char *argv[])
 #endif //! DEMO_MODE
         {
             scenePingProf.startSample();
+
             sceneShaders[pingIndex].bind(syncRow);
             scenePingFbo.bindWrite();
-            sceneShaders[pingIndex].setFloat(
-                "uTime",
-#ifdef DEMO_MODE
-                currentTimeS
-#else  // DEMO_NODE
-                gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
-#endif // DEMO_MODE
-            );
-            sceneShaders[pingIndex].setVec2(
-                "uRes", (GLfloat)window.width(), (GLfloat)window.height());
+
+            UPDATE_COMMON_UNIFORMS(sceneShaders[pingIndex]);
+
             q.render();
+
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             scenePingProf.endSample();
 
             scenePongProf.startSample();
+
             sceneShaders[pongIndex].bind(syncRow);
             scenePongFbo.bindWrite();
-            sceneShaders[pongIndex].setFloat(
-                "uTime",
-#ifdef DEMO_MODE
-                currentTimeS
-#else  // DEMO_NODE
-                gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
-#endif // DEMO_MODE
-            );
-            sceneShaders[pongIndex].setVec2(
-                "uRes", (GLfloat)window.width(), (GLfloat)window.height());
+
+            UPDATE_COMMON_UNIFORMS(sceneShaders[pongIndex]);
+
             q.render();
+
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             scenePongProf.endSample();
 
