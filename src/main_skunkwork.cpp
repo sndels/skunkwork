@@ -40,6 +40,9 @@ static struct sync_cb audioSync = {
         shader.setFloat("uTime", currentTimeS);                                \
         shader.setVec2(                                                        \
             "uRes", (GLfloat)window.width(), (GLfloat)window.height());        \
+        shader.setFloat(                                                       \
+            "uAspectRatio",                                                    \
+            (GLfloat)window.width() / (GLfloat)window.height());               \
     } while (0)
 
 #else // !DEMO_NODE
@@ -51,6 +54,9 @@ static struct sync_cb audioSync = {
             gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()); \
         shader.setVec2(                                                        \
             "uRes", (GLfloat)window.width(), (GLfloat)window.height());        \
+        shader.setFloat(                                                       \
+            "uAspectRatio",                                                    \
+            (GLfloat)window.width() / (GLfloat)window.height());               \
     } while (0)
 #endif // DEMO_MODE
 
