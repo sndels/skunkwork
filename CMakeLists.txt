@@ -53,7 +53,7 @@ else()
     )
 endif()
 
-target_compile_definitions(skunkwork PRIVATE ROCKET SDL_MAIN_HANDLED)
+target_compile_definitions(skunkwork PRIVATE SDL_MAIN_HANDLED)
 target_include_directories(skunkwork
     PRIVATE
     ${SKUNKWORK_INCLUDE_DIR}
@@ -82,40 +82,3 @@ if(DISTRIBUTE_DEMO)
         ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/skunkwork_dist
     )
 endif()
-
-# "shadertoy" only, doesn't include audio or rocket support
-add_executable(skunktoy ${SKUNKTOY_SOURCES})
-target_compile_features(skunktoy
-    PRIVATE
-    cxx_std_17
-)
-
-if(MSVC)
-    target_compile_options(skunktoy
-        PRIVATE
-        /Wall
-    )
-else()
-    target_compile_options(skunktoy
-        PRIVATE
-        -Wall
-        -pedantic
-    )
-endif()
-
-target_compile_definitions(skunktoy
-    PRIVATE
-    SDL_MAIN_HANDLED
-)
-target_include_directories(skunktoy
-    PRIVATE
-    ${SKUNKWORK_INCLUDE_DIR}
-)
-target_link_libraries(skunktoy
-    PRIVATE
-    ${OPENGL_LIBRARIES}
-    glm
-    libgl3w
-    imgui
-    SDL2
-)

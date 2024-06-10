@@ -40,8 +40,6 @@ std::string toString(UniformType type)
 }
 } // namespace
 
-#ifdef ROCKET
-
 Shader::Shader(
     const std::string &name, sync_device *rocket, const std::string &vertPath,
     const std::string &fragPath, const std::string &geomPath)
@@ -67,35 +65,8 @@ Shader::Shader(
         _progID = progID;
 }
 
-#else
-
-Shader::Shader(
-    const std::string &name, const std::string &vertPath,
-    const std::string &fragPath, const std::string &geomPath)
-: _progID(0)
-, _name(name)
-{
-    setVendor();
-    GLuint progID = loadProgram(vertPath, fragPath, geomPath);
-    if (progID != 0)
-        _progID = progID;
-}
-
-Shader::Shader(const std::string &name, const std::string &compPath)
-: _progID(0)
-, _name(name)
-{
-    setVendor();
-    GLuint progID = loadProgram(compPath);
-    if (progID != 0)
-        _progID = progID;
-}
-
-#endif // ROCKET
-
 Shader::~Shader() { glDeleteProgram(_progID); }
 
-#ifdef ROCKET
 Shader::Shader(Shader &&other)
 : _progID(other._progID)
 , _vendor(other._vendor)
@@ -115,39 +86,14 @@ Shader::Shader(Shader &&other)
 {
     other._progID = 0;
 }
-#else
-Shader::Shader(Shader &&other)
-: _progID(other._progID)
-, _vendor(other._vendor)
-, _vertPaths(other._vertPaths)
-, _fragPaths(other._fragPaths)
-, _geomPaths(other._geomPaths)
-, _compPaths(other._compPaths)
-, _vertMods(other._vertMods)
-, _fragMods(other._fragMods)
-, _compMods(other._compMods)
-, _geomMods(other._geomMods)
-, _uniforms(other._uniforms)
-, _dynamicUniforms(other._dynamicUniforms)
-{
-    other._progID = 0;
-}
-#endif // ROCKET
 
-#ifdef ROCKET
 void Shader::bind(double syncRow)
 {
     glUseProgram(_progID);
     setDynamicUniforms();
-    setRocketUniforms(syncRow);
+    if (_rocket != nullptr)
+        setRocketUniforms(syncRow);
 }
-#else
-void Shader::bind()
-{
-    glUseProgram(_progID);
-    setDynamicUniforms();
-}
-#endif // ROCKET
 
 bool Shader::reload()
 {
@@ -417,15 +363,13 @@ void Shader::collectUniforms(GLuint progID)
 
     // Rebuild uniforms
     std::unordered_map<std::string, Uniform> newDynamics;
-#ifdef ROCKET
     std::unordered_map<std::string, const sync_track *> newRockets;
-#endif // ROCKET
     for (auto &u : _uniforms)
     {
         std::string name = u.first;
 
-#ifdef ROCKET
-        if (name.length() > 1 && name[0] == 'r' && isupper(name[1]))
+        // Rocket uniforms use hungarian notation starting with 'r', e.g. rTime
+        if (_rocket && name.length() > 1 && name[0] == 'r' && isupper(name[1]))
         {
             // Check type
             UniformType type = u.second.first;
@@ -448,7 +392,6 @@ void Shader::collectUniforms(GLuint progID)
             newRockets.insert(
                 {name, sync_get_track(_rocket, (_name + ":" + name).c_str())});
         }
-#endif // ROCKET
 
         // Skip uniforms not labelled as dynamic
         if (name.length() < 2 || name[0] != 'd' || !isupper(name[1]))
@@ -485,9 +428,7 @@ void Shader::collectUniforms(GLuint progID)
         }
     }
     _dynamicUniforms = newDynamics;
-#ifdef ROCKET
     _rocketUniforms = newRockets;
-#endif // ROCKET
 }
 
 GLuint Shader::loadShader(const std::string &mainPath, GLenum shaderType)
@@ -763,7 +704,6 @@ void Shader::setDynamicUniforms()
     }
 }
 
-#ifdef ROCKET
 void Shader::setRocketUniforms(double syncRow)
 {
     for (auto &u : _rocketUniforms)
@@ -773,4 +713,3 @@ void Shader::setRocketUniforms(double syncRow)
                       {(GLfloat)sync_get_val(u.second, syncRow), 0.f, 0.f}});
     }
 }
-#endif // ROCKET

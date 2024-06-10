@@ -3,13 +3,10 @@
 
 #include <GL/gl3w.h>
 #include <string>
+#include <sync.h>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#ifdef ROCKET
-#include <sync.h>
-#endif // ROCKET
 
 enum class UniformType
 {
@@ -22,7 +19,8 @@ enum class UniformType
 struct Uniform
 {
     UniformType type;
-    union {
+    union
+    {
         float f[3];
         bool b;
     } value;
@@ -39,7 +37,6 @@ class Shader
     };
 
   public:
-#ifdef ROCKET
     Shader(
         const std::string &name, sync_device *rocket,
         const std::string &vertPath, const std::string &fragPath,
@@ -47,12 +44,6 @@ class Shader
     Shader(
         const std::string &name, sync_device *rocket,
         const std::string &compPath);
-#else
-    Shader(
-        const std::string &name, const std::string &vertPath,
-        const std::string &fragPath, const std::string &geomPath = "");
-    Shader(const std::string &name, const std::string &compPath);
-#endif // ROCKET
 
     ~Shader();
 
@@ -60,11 +51,7 @@ class Shader
     Shader(Shader &&other);
     Shader operator=(const Shader &other);
 
-#ifdef ROCKET
     void bind(double syncRow);
-#else
-    void bind();
-#endif // ROCKET
     bool reload();
     void setFloat(const std::string &name, GLfloat value);
     void setVec2(const std::string &name, GLfloat x, GLfloat y);
@@ -89,9 +76,7 @@ class Shader
     GLint getUniform(const std::string &name, UniformType type) const;
     void setUniform(const std::string &name, const Uniform &uniform);
     void setDynamicUniforms();
-#ifdef ROCKET
     void setRocketUniforms(double syncRow);
-#endif // ROCKET
 
     GLuint _progID;
     Vendor _vendor;
@@ -106,10 +91,8 @@ class Shader
     std::unordered_map<std::string, std::pair<UniformType, GLint>> _uniforms;
     std::unordered_map<std::string, Uniform> _dynamicUniforms;
     std::string _name;
-#ifdef ROCKET
     sync_device *_rocket;
     std::unordered_map<std::string, const sync_track *> _rocketUniforms;
-#endif // ROCKET
 };
 
 #endif // SKUNKWORK_SHADER_HPP
