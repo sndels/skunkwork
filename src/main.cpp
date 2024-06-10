@@ -6,6 +6,7 @@
 #include <track.h>
 
 #include "audioStream.hpp"
+#include "error.hpp"
 #include "frameBuffer.hpp"
 #include "gpuProfiler.hpp"
 #include "gui.hpp"

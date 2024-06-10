@@ -3,20 +3,7 @@ set(SKUNKWORK_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/frameBuffer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/gpuProfiler.cpp
     ${CMAKE_CURRENT_LIST_DIR}/gui.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/main_skunkwork.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/quad.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/shader.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/texture.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/timer.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/window.cpp
-    PARENT_SCOPE
-)
-
-set(SKUNKTOY_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/frameBuffer.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/gpuProfiler.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/gui.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/main_skunktoy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/main.cpp
     ${CMAKE_CURRENT_LIST_DIR}/quad.cpp
     ${CMAKE_CURRENT_LIST_DIR}/shader.cpp
     ${CMAKE_CURRENT_LIST_DIR}/texture.cpp
