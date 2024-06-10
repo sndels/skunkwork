@@ -20,6 +20,7 @@
 // #define DEMO_MODE
 #ifndef DEMO_MODE
 // Comment out to load sync from files
+// Uncomment to use rocket editor
 // #define TCPROCKET
 #endif // !DEMO_MODE
 
@@ -108,26 +109,37 @@ int main(int argc, char *argv[])
 
     // Set up audio
     std::string musicPath(RES_DIRECTORY);
-    musicPath += "illegal_af.wav";
-    if (!AudioStream::getInstance().init(musicPath, 175.0, 8))
+    musicPath += "no_music_path_given";
+
+    AudioStream &audioStream = AudioStream::getInstance();
+
+    float beatsPerMinute = 175.0;
+    int32_t rowsPerBeat = 8;
+    audioStream.init(musicPath, beatsPerMinute, rowsPerBeat);
+    if (!audioStream.hasMusic())
     {
-        gui.destroy();
-        window.destroy();
+#ifdef DEMO_MODE
         exit(EXIT_FAILURE);
+#else  //  !DEMO_MODE
+        fprintf(
+            stderr, "Running without rocket and timeline scrubbing.\n",
+            musicPath.c_str());
+#endif // DEMO_MODE
     }
 
     // Set up rocket
-    sync_device *rocket = sync_create_device(
-        std::filesystem::relative(
-            std::filesystem::path{RES_DIRECTORY "rocket/sync"},
-            std::filesystem::current_path())
-            .lexically_normal()
-            .generic_string()
-            .c_str());
-    if (!rocket)
+    sync_device *rocket = nullptr;
+    if (audioStream.hasMusic())
     {
-        printf("[rocket] Failed to create device\n");
-        exit(EXIT_FAILURE);
+        rocket = sync_create_device(
+            std::filesystem::relative(
+                std::filesystem::path{RES_DIRECTORY "rocket/sync"},
+                std::filesystem::current_path())
+                .lexically_normal()
+                .generic_string()
+                .c_str());
+        if (!rocket)
+            fprintf(stderr, "[rocket] Failed to create device\n");
     }
 
     // Set up scene
@@ -145,19 +157,24 @@ int main(int argc, char *argv[])
         RES_DIRECTORY "shader/composite_frag.glsl");
 
 #ifdef TCPROCKET
-    // Try connecting to rocket-server
-    int rocketConnected =
-        sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT) == 0;
-    if (!rocketConnected)
+    if (rocket != nullptr)
     {
-        printf("[rocket] Failed to connect to server\n");
-        exit(EXIT_FAILURE);
+        // Try connecting to rocket-server
+        int rocketConnected =
+            sync_tcp_connect(rocket, "localhost", SYNC_DEFAULT_PORT) == 0;
+        if (!rocketConnected)
+            fprintf(stderr, "[rocket] Failed to connect to server\n");
     }
 #endif // TCPROCKET
 
     // Init rocket tracks here
-    const sync_track *pingScene = sync_get_track(rocket, "pingScene");
-    const sync_track *pongScene = sync_get_track(rocket, "pongScene");
+    sync_track const *pingScene = nullptr;
+    sync_track const *pongScene = nullptr;
+    if (rocket != nullptr)
+    {
+        pingScene = sync_get_track(rocket, "pingScene");
+        pongScene = sync_get_track(rocket, "pongScene");
+    }
 
     Timer reloadTime;
     Timer globalTime;
@@ -179,9 +196,11 @@ int main(int argc, char *argv[])
     FrameBuffer scenePingFbo(XRES, YRES, sceneTexParams);
     FrameBuffer scenePongFbo(XRES, YRES, sceneTexParams);
 
-    AudioStream::getInstance().play();
+    if (audioStream.hasMusic())
+        audioStream.play();
 
     int32_t overrideIndex = -1;
+    float currentTimeS = -1.f;
 
     // Run the main loop
     while (window.open())
@@ -191,10 +210,13 @@ int main(int argc, char *argv[])
 #ifndef DEMO_MODE
         if (window.playPausePressed())
         {
-            if (AudioStream::getInstance().isPlaying())
-                AudioStream::getInstance().pause();
-            else
-                AudioStream::getInstance().play();
+            if (audioStream.hasMusic())
+            {
+                if (audioStream.isPlaying())
+                    audioStream.pause();
+                else
+                    audioStream.play();
+            }
         }
 #endif // !DEMO_MODE
 
@@ -205,27 +227,36 @@ int main(int argc, char *argv[])
         }
 
         // Sync
-        double syncRow = AudioStream::getInstance().getRow();
+        double syncRow = 0.0;
+        if (audioStream.hasMusic())
+            syncRow = audioStream.getRow();
 
 #ifdef TCPROCKET
-        // Try re-connecting to rocket-server if update fails
-        // Drops all the frames, if trying to connect on windows
-        if (sync_update(
-                rocket, (int)floor(syncRow), &audioSync,
-                AudioStream::getInstance().getMusic()))
-            sync_connect(rocket, "localhost", SYNC_DEFAULT_PORT);
+        if (rocket != nullptr)
+        {
+            // Try re-connecting to rocket-server if update fails
+            // NOTE: Framerate grinds to a halt if trying to connect on windows
+            if (sync_update(
+                    rocket, (int)floor(syncRow), &audioSync, &audioStream))
+                sync_tcp_connect(rocket, "localhost", SYNC_DEFAULT_PORT);
+        }
 #endif // TCPROCKET
 
-        int32_t pingIndex = std::clamp(
-            (int32_t)(float)sync_get_val(pingScene, syncRow), 0,
-            (int32_t)sceneShaders.size() - 1);
-        int32_t pongIndex = std::clamp(
-            (int32_t)(float)sync_get_val(pongScene, syncRow), 0,
-            (int32_t)sceneShaders.size() - 1);
+        int32_t pingIndex = 0;
+        if (pingScene != nullptr)
+            pingIndex = std::clamp(
+                (int32_t)(float)sync_get_val(pingScene, syncRow), 0,
+                (int32_t)sceneShaders.size() - 1);
+        int32_t pongIndex = 0;
+        if (pongScene != nullptr)
+            pongIndex = std::clamp(
+                (int32_t)(float)sync_get_val(pongScene, syncRow), 0,
+                (int32_t)sceneShaders.size() - 1);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        float const currentTimeS = (float)AudioStream::getInstance().getTimeS();
+        if (audioStream.hasMusic())
+            currentTimeS = (float)audioStream.getTimeS();
 #ifndef DEMO_MODE
         if (window.drawGUI())
         {
@@ -240,7 +271,12 @@ int main(int argc, char *argv[])
                 std::clamp(overrideIndex, -1, (int32_t)sceneShaders.size() - 1);
 
             if (uiTimeS != currentTimeS)
-                AudioStream::getInstance().setTimeS(uiTimeS);
+            {
+                if (audioStream.hasMusic())
+                    audioStream.setTimeS(uiTimeS);
+                else
+                    currentTimeS = uiTimeS;
+            }
         }
 
         // Try reloading the shader every 0.5s
@@ -253,7 +289,7 @@ int main(int argc, char *argv[])
         }
 
         // TODO: No need to reset before switch back
-        if (gui.useSliderTime())
+        if (gui.shouldResetTime())
             globalTime.reset();
 
         if (overrideIndex >= 0)
@@ -321,21 +357,24 @@ int main(int argc, char *argv[])
         window.endFrame();
 
 #ifdef DEMO_MODE
-        if (!AudioStream::getInstance().isPlaying())
+        if (!audioStream.isPlaying())
             window.setClose();
 #endif // DEMO_MODE
     }
 
 #ifdef TCPROCKET
     // Save rocket tracks
-    sync_save_tracks(rocket);
+    if (rocket != nullptr)
+        sync_save_tracks(rocket);
 #endif // TCPROCKET
 
     // Release resources
-    sync_destroy_device(rocket);
 
-    AudioStream::getInstance().destroy();
+    if (rocket != nullptr)
+        sync_destroy_device(rocket);
+
     gui.destroy();
     window.destroy();
+
     exit(EXIT_SUCCESS);
 }

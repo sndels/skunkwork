@@ -19,8 +19,10 @@ class GUI
     void init(SDL_Window *window, SDL_GLContext context);
     void destroy();
     bool useSliderTime() const;
+    bool shouldResetTime();
     float sliderTime() const;
 
+    // Negative time signals that time slider should not be drawn
     void startFrame(
         int32_t &sceneOverride, float &timeS,
         std::vector<Shader *> const &shaders,
@@ -30,6 +32,7 @@ class GUI
   private:
     SDL_Window *_window{nullptr};
     bool _useSliderTime{false};
+    bool _resetTimePressed{false};
     float _sliderTime{0.f};
 };
 

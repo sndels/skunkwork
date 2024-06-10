@@ -3,31 +3,36 @@
 
 #include <SDL_mixer.h>
 
-#include <string>
 #include <chrono>
+#include <string>
 
 class AudioStream
 {
-public:
-    static AudioStream& getInstance()
+  public:
+    static AudioStream &getInstance()
     {
-        // The only instance
+        // Only one instance should exist as this uses the Mix_ interfaces and
+        // the current implementation doesn't support two streams with
+        // independent behavior.
         static AudioStream instance;
         return instance;
     }
 
-    // Enforce singleton
-    AudioStream(AudioStream const&) = delete;
-    void operator=(AudioStream const&) = delete;
+    AudioStream(AudioStream const &) = delete;
+    AudioStream(AudioStream &&) = delete;
+    void operator=(AudioStream const &) = delete;
+    void operator=(AudioStream &&) = delete;
 
     // Static interface for rocket
-    static void pauseStream(void* data, int32_t flag);
-    static void setStreamRow(void* data, int32_t row);
-    static int32_t isStreamPlaying(void* data);
+    static void pauseStream(void *data, int32_t flag);
+    static void setStreamRow(void *data, int32_t row);
+    static int32_t isStreamPlaying(void *data);
 
-    bool init(const std::string& filePath, double bpm, int32_t rpb);
+    void init(const std::string &filePath, double bpm, int32_t rpb);
     void destroy();
-    Mix_Music* getMusic() const;
+
+    bool hasMusic() const;
+    Mix_Music *getMusic() const;
     void play();
     bool isPlaying();
     void pause();
@@ -37,11 +42,11 @@ public:
     double getRow();
     void setRow(int32_t row);
 
-private:
-    AudioStream();
-    ~AudioStream();
+  private:
+    AudioStream() = default;
+    ~AudioStream() = default;
 
-    Mix_Music* _music{nullptr};
+    Mix_Music *_music{nullptr};
     bool _shouldRestart{false};
     double _timeS{0.f};
     std::chrono::high_resolution_clock::time_point _prevTimeStamp;
