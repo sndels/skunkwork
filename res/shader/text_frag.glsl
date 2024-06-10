@@ -80,7 +80,7 @@ void renderChar(uint c, vec2 pp, inout float d, inout float drawingCursor)
 void main()
 {
     // Avoid nags if these aren't used
-    if (uTime < -1. || uRes.x < -1.)
+    if (uTime < -1 || uRes.x < -1 && uAspectRatio < -1)
         discard;
 
     vec2 uv = gl_FragCoord.xy / uRes.xy;
