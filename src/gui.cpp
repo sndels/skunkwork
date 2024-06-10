@@ -47,6 +47,20 @@ void GUI::destroy()
 
 bool GUI::useSliderTime() const { return _useSliderTime; }
 
+bool GUI::shouldResetTime()
+{
+    if (_useSliderTime)
+        return true;
+
+    if (_resetTimePressed)
+    {
+        _resetTimePressed = false;
+        return true;
+    }
+
+    return false;
+}
+
 float GUI::sliderTime() const { return _sliderTime; }
 
 void GUI::startFrame(
@@ -66,18 +80,23 @@ void GUI::startFrame(
     ImGui::Begin("Skunkwork GUI", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::InputInt("Scene override", &sceneOverride, 1, 1);
-    ImGui::Checkbox("##Use slider time", &_useSliderTime);
-    ImGui::SameLine();
-    if (ImGui::Button("<<"))
-        timeS -= 1.0;
-    ImGui::SameLine();
-    if (ImGui::Button(">>"))
-        timeS += 1.0;
-    ImGui::SameLine();
-    ImGui::DragFloat("uTime", &timeS, 0.01f);
-    if (timeS < 0.f)
-        timeS = 0.f;
-    _sliderTime = timeS;
+    if (timeS >= 0.f)
+    {
+        ImGui::Checkbox("##Use slider time", &_useSliderTime);
+        ImGui::SameLine();
+        if (ImGui::Button("<<"))
+            timeS -= 1.0;
+        ImGui::SameLine();
+        if (ImGui::Button(">>"))
+            timeS += 1.0;
+        ImGui::SameLine();
+        ImGui::DragFloat("uTime", &timeS, 0.01f);
+        if (timeS < 0.f)
+            timeS = 0.f;
+        _sliderTime = timeS;
+    }
+    else
+        _resetTimePressed = ImGui::Button("Reset time");
 
     static size_t comboIndex = 0;
     comboIndex = std::min(comboIndex, shaders.size() - 1);
