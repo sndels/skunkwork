@@ -12,8 +12,17 @@ enum class UniformType
 {
     Bool,
     Float,
+    Uint,
+    Int,
     Vec2,
-    Vec3
+    Vec3,
+    Vec4,
+    UVec2,
+    UVec3,
+    UVec4,
+    IVec2,
+    IVec3,
+    IVec4
 };
 
 struct Uniform
@@ -21,8 +30,10 @@ struct Uniform
     UniformType type;
     union
     {
-        float f[3];
         bool b;
+        float f[4];
+        unsigned int u[4];
+        int i[4];
     } value;
 };
 

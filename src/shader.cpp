@@ -160,12 +160,15 @@ const std::string &Shader::name() const { return _name; }
 
 void Shader::setFloat(const std::string &name, GLfloat value)
 {
-    setUniform(name, {UniformType::Float, {value, 0.f, 0.f}});
+    GLint location = getUniform(name, UniformType::Float);
+    glUniform1f(location, value);
 }
 
 void Shader::setVec2(const std::string &name, GLfloat x, GLfloat y)
 {
-    setUniform(name, {UniformType::Vec2, {x, y, 0.f}});
+    GLint location = getUniform(name, UniformType::Vec2);
+    GLfloat value[2] = {x, y};
+    glUniform2fv(location, 1, value);
 }
 
 GLint Shader::getUniformLocation(const std::string &name) const
@@ -349,11 +352,38 @@ void Shader::collectUniforms(GLuint progID)
         case GL_FLOAT:
             type = UniformType::Float;
             break;
+        case GL_UNSIGNED_INT:
+            type = UniformType::Uint;
+            break;
+        case GL_INT:
+            type = UniformType::Int;
+            break;
         case GL_FLOAT_VEC2:
             type = UniformType::Vec2;
             break;
         case GL_FLOAT_VEC3:
             type = UniformType::Vec3;
+            break;
+        case GL_FLOAT_VEC4:
+            type = UniformType::Vec4;
+            break;
+        case GL_UNSIGNED_INT_VEC2:
+            type = UniformType::UVec2;
+            break;
+        case GL_UNSIGNED_INT_VEC3:
+            type = UniformType::UVec3;
+            break;
+        case GL_UNSIGNED_INT_VEC4:
+            type = UniformType::UVec4;
+            break;
+        case GL_INT_VEC2:
+            type = UniformType::IVec2;
+            break;
+        case GL_INT_VEC3:
+            type = UniformType::IVec3;
+            break;
+        case GL_INT_VEC4:
+            type = UniformType::IVec4;
             break;
         default:
             reportError(
@@ -410,25 +440,42 @@ void Shader::collectUniforms(GLuint progID)
         }
 
         // Init new uniform
-        UniformType type = u.second.first;
-        float default_data[3];
-        glGetUniformfv(progID, u.second.second, default_data);
-        switch (type)
+        Uniform uniform{
+            .type = u.second.first,
+        };
+        int tmp = 0;
+        switch (uniform.type)
         {
         case UniformType::Bool:
+            glGetUniformiv(progID, u.second.second, &tmp);
+            uniform.value.b = tmp == 1;
+            break;
+        case UniformType::Int:
+        case UniformType::IVec2:
+        case UniformType::IVec3:
+        case UniformType::IVec4:
+            glGetUniformiv(progID, u.second.second, uniform.value.i);
+            break;
         case UniformType::Float:
         case UniformType::Vec2:
         case UniformType::Vec3:
-            newDynamics.insert(
-                {u.first,
-                 {type, {default_data[0], default_data[1], default_data[2]}}});
+        case UniformType::Vec4:
+            glGetUniformfv(progID, u.second.second, uniform.value.f);
+            break;
+        case UniformType::Uint:
+        case UniformType::UVec2:
+        case UniformType::UVec3:
+        case UniformType::UVec4:
+            glGetUniformuiv(progID, u.second.second, uniform.value.u);
             break;
         default:
             reportError(
                 "[shader] Unimplemented dynamic uniform of type " +
-                toString(type));
+                toString(uniform.type));
+            // uniform.value is left uninitialized
             break;
         }
+        newDynamics.insert({u.first, uniform});
     }
     _dynamicUniforms = newDynamics;
     _rocketUniforms = newRockets;
@@ -694,6 +741,33 @@ void Shader::setUniform(const std::string &name, const Uniform &uniform)
     case UniformType::Vec3:
         glUniform3fv(location, 1, uniform.value.f);
         break;
+    case UniformType::Vec4:
+        glUniform4fv(location, 1, uniform.value.f);
+        break;
+    case UniformType::Uint:
+        glUniform1ui(location, *uniform.value.u);
+        break;
+    case UniformType::UVec2:
+        glUniform2uiv(location, 1, uniform.value.u);
+        break;
+    case UniformType::UVec3:
+        glUniform3uiv(location, 1, uniform.value.u);
+        break;
+    case UniformType::UVec4:
+        glUniform4uiv(location, 1, uniform.value.u);
+        break;
+    case UniformType::Int:
+        glUniform1i(location, *uniform.value.i);
+        break;
+    case UniformType::IVec2:
+        glUniform2iv(location, 1, uniform.value.i);
+        break;
+    case UniformType::IVec3:
+        glUniform3iv(location, 1, uniform.value.i);
+        break;
+    case UniformType::IVec4:
+        glUniform4iv(location, 1, uniform.value.i);
+        break;
     default:
         reportError(
             "[shader] Setting uniform of type '" + toString(uniform.type) +
@@ -713,9 +787,5 @@ void Shader::setDynamicUniforms()
 void Shader::setRocketUniforms(double syncRow)
 {
     for (auto &u : _rocketUniforms)
-    {
-        setUniform(
-            u.first, {UniformType::Float,
-                      {(GLfloat)sync_get_val(u.second, syncRow), 0.f, 0.f}});
-    }
+        setFloat(u.first, (GLfloat)sync_get_val(u.second, syncRow));
 }

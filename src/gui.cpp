@@ -6,6 +6,7 @@
 #include <imgui_impl_sdl.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
 
 namespace
@@ -125,6 +126,7 @@ void GUI::startFrame(
         {
             std::string name = e.first + "##" + s->name();
             Uniform &uniform = e.second;
+            int tmp[4];
             switch (uniform.type)
             {
             case UniformType::Bool:
@@ -146,6 +148,113 @@ void GUI::startFrame(
                         ImGuiColorEditFlags_PickerHueWheel);
                 ImGui::SameLine();
                 ImGui::DragFloat3(name.c_str(), uniform.value.f, 0.01f);
+                break;
+            case UniformType::Vec4:
+                ImGui::ColorEdit4(
+                    std::string("##" + name).c_str(), uniform.value.f,
+                    ImGuiColorEditFlags_NoInputs |
+                        ImGuiColorEditFlags_PickerHueWheel);
+                ImGui::SameLine();
+                ImGui::DragFloat4(name.c_str(), uniform.value.f, 0.01f);
+                break;
+            case UniformType::Int:
+                uniformOffset();
+                ImGui::DragInt(name.c_str(), uniform.value.i, 0.01f);
+                break;
+            case UniformType::IVec2:
+                uniformOffset();
+                ImGui::DragInt2(name.c_str(), uniform.value.i, 0.01f);
+                break;
+            case UniformType::IVec3:
+                uniformOffset();
+                ImGui::DragInt3(name.c_str(), uniform.value.i, 0.01f);
+                break;
+            case UniformType::IVec4:
+                uniformOffset();
+                ImGui::DragInt4(name.c_str(), uniform.value.i, 0.01f);
+                break;
+            case UniformType::Uint:
+                uniformOffset();
+
+                // Imgui currently doesn't have DragUint so let's use DragInt
+                assert(*uniform.value.u <= INT32_MAX);
+                *tmp = *uniform.value.u;
+
+                ImGui::DragInt(name.c_str(), tmp, 0.01f);
+
+                if (*tmp < 0)
+                    *tmp = 0;
+
+                *uniform.value.u = *tmp;
+                break;
+            case UniformType::UVec2:
+                uniformOffset();
+
+                // Imgui currently doesn't have DragUint so let's use DragInt
+                assert(uniform.value.u[0] <= INT32_MAX);
+                assert(uniform.value.u[1] <= INT32_MAX);
+                tmp[0] = uniform.value.u[0];
+                tmp[1] = uniform.value.u[1];
+
+                ImGui::DragInt2(name.c_str(), tmp, 0.01f);
+
+                if (tmp[0] < 0)
+                    tmp[0] = 0;
+                if (tmp[1] < 0)
+                    tmp[1] = 0;
+                uniform.value.u[0] = tmp[0];
+                uniform.value.u[1] = tmp[1];
+                break;
+            case UniformType::UVec3:
+                uniformOffset();
+
+                // Imgui currently doesn't have DragUint so let's use DragInt
+                assert(uniform.value.u[0] <= INT32_MAX);
+                assert(uniform.value.u[1] <= INT32_MAX);
+                assert(uniform.value.u[2] <= INT32_MAX);
+                tmp[0] = uniform.value.u[0];
+                tmp[1] = uniform.value.u[1];
+                tmp[2] = uniform.value.u[2];
+
+                ImGui::DragInt3(name.c_str(), tmp, 0.01f);
+
+                if (tmp[0] < 0)
+                    tmp[0] = 0;
+                if (tmp[1] < 0)
+                    tmp[1] = 0;
+                if (tmp[2] < 0)
+                    tmp[2] = 0;
+                uniform.value.u[0] = tmp[0];
+                uniform.value.u[1] = tmp[1];
+                uniform.value.u[2] = tmp[2];
+                break;
+            case UniformType::UVec4:
+                uniformOffset();
+
+                // Imgui currently doesn't have DragUint so let's use DragInt
+                assert(uniform.value.u[0] <= INT32_MAX);
+                assert(uniform.value.u[1] <= INT32_MAX);
+                assert(uniform.value.u[2] <= INT32_MAX);
+                assert(uniform.value.u[3] <= INT32_MAX);
+                tmp[0] = uniform.value.u[0];
+                tmp[1] = uniform.value.u[1];
+                tmp[2] = uniform.value.u[2];
+                tmp[3] = uniform.value.u[3];
+
+                ImGui::DragInt4(name.c_str(), tmp, 0.01f);
+
+                if (tmp[0] < 0)
+                    tmp[0] = 0;
+                if (tmp[1] < 0)
+                    tmp[1] = 0;
+                if (tmp[2] < 0)
+                    tmp[2] = 0;
+                if (tmp[3] < 0)
+                    tmp[3] = 0;
+                uniform.value.u[0] = tmp[0];
+                uniform.value.u[1] = tmp[1];
+                uniform.value.u[2] = tmp[2];
+                uniform.value.u[3] = tmp[3];
                 break;
             default:
                 reportError("[gui] Unknown dynamic uniform type");
