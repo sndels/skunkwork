@@ -24,15 +24,23 @@
 // #define TCPROCKET
 #endif // !DEMO_MODE
 
+namespace
+{
+
 #ifdef TCPROCKET
 // Set up audio callbacks for rocket
-static struct sync_cb audioSync = {
+sync_cb sAudioSync = {
     AudioStream::pauseStream, AudioStream::setStreamRow,
     AudioStream::isStreamPlaying};
 #endif // TCPROCKET
 
-#define XRES 1920
-#define YRES 1080
+const uint32_t sXRes = 1920;
+const uint32_t sYRes = 1080;
+
+const float sBeatsPerMinute = 175.f;
+const int32_t sRowsPerBeat = 8;
+
+} // namespace
 
 #ifdef DEMO_MODE
 
@@ -94,7 +102,7 @@ int main(int argc, char *argv[])
         }
     }
     Window window;
-    if (!window.init(XRES, YRES, "skunkwork", displayIndex))
+    if (!window.init(sXRes, sYRes, "skunkwork", displayIndex))
         return -1;
 
 #ifdef DEMO_MODE
@@ -114,9 +122,7 @@ int main(int argc, char *argv[])
 
     AudioStream &audioStream = AudioStream::getInstance();
 
-    float beatsPerMinute = 175.0;
-    int32_t rowsPerBeat = 8;
-    audioStream.init(musicPath, beatsPerMinute, rowsPerBeat);
+    audioStream.init(musicPath, sBeatsPerMinute, sRowsPerBeat);
     if (!audioStream.hasMusic())
     {
 #ifdef DEMO_MODE
@@ -192,8 +198,8 @@ int main(int argc, char *argv[])
     // Generate framebuffer for main rendering
     std::vector<TextureParams> sceneTexParams({rgba16fParams});
 
-    FrameBuffer scenePingFbo(XRES, YRES, sceneTexParams);
-    FrameBuffer scenePongFbo(XRES, YRES, sceneTexParams);
+    FrameBuffer scenePingFbo(sXRes, sYRes, sceneTexParams);
+    FrameBuffer scenePongFbo(sXRes, sYRes, sceneTexParams);
 
     if (audioStream.hasMusic())
         audioStream.play();
@@ -236,7 +242,7 @@ int main(int argc, char *argv[])
             // Try re-connecting to rocket-server if update fails
             // NOTE: Framerate grinds to a halt if trying to connect on windows
             if (sync_update(
-                    rocket, (int)floor(syncRow), &audioSync, &audioStream))
+                    rocket, (int)floor(syncRow), &sAudioSync, &audioStream))
                 sync_tcp_connect(rocket, "localhost", SYNC_DEFAULT_PORT);
         }
 #endif // TCPROCKET
