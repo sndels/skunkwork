@@ -1,5 +1,6 @@
 #include "gui.hpp"
 
+#include "error.hpp"
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl.h>
@@ -147,7 +148,7 @@ void GUI::startFrame(
                 ImGui::DragFloat3(name.c_str(), uniform.value.f, 0.01f);
                 break;
             default:
-                printf("[gui] Unknown dynamic uniform type\n");
+                reportError("[gui] Unknown dynamic uniform type");
                 break;
             }
         }

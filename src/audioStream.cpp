@@ -1,5 +1,6 @@
 #include "audioStream.hpp"
 
+#include "error.hpp"
 #include <cassert>
 #include <cstdio>
 
@@ -65,7 +66,7 @@ void AudioStream::init(const std::string &filePath, double bpm, int32_t rpb)
 
     if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, 4096) < 0)
     {
-        fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+        reportError(std::string("Couldn't open audio: ") + SDL_GetError());
         return;
     }
 
@@ -81,8 +82,8 @@ void AudioStream::init(const std::string &filePath, double bpm, int32_t rpb)
     _music = Mix_LoadMUS(filePath.c_str());
     if (_music == nullptr)
     {
-        fprintf(stderr, "Failed to open music from %s\n", filePath.c_str());
-        fprintf(stderr, "%s\n", SDL_GetError());
+        reportError("Failed to open music from " + filePath);
+        reportError(SDL_GetError());
         Mix_CloseAudio();
         return;
     }

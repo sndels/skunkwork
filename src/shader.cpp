@@ -1,5 +1,6 @@
 #include "shader.hpp"
 
+#include "error.hpp"
 #include <cassert>
 #include <cstdio>
 #include <cstring>
@@ -16,7 +17,7 @@ time_t getMod(const std::string &path)
     struct stat sb;
     if (stat(path.c_str(), &sb) == -1)
     {
-        printf("[shader] stat failed for '%s'\n", path.c_str());
+        reportError("[shader] stat failed for " + path);
         return (time_t)-1;
     }
     return sb.st_mtime;
@@ -171,7 +172,7 @@ GLint Shader::getUniformLocation(const std::string &name) const
 {
     GLint uniformLocation = glGetUniformLocation(_progID, name.c_str());
     if (uniformLocation == -1)
-        printf("[shader] %s is not a valid shader variable\n", name.c_str());
+        reportError("[shader] '" + name + "' is not a valid shader variable");
     return uniformLocation;
 }
 
@@ -186,8 +187,9 @@ void Shader::setVendor()
         _vendor = Vendor::AMD;
     else
     {
-        printf(
-            "[shader] Include aware error parsing not supported for '%s'\n",
+        reportError(
+            std::string(
+                "[shader] Include aware error parsing not supported for ") +
             vendor);
         _vendor = Vendor::NotSupported;
     }
@@ -258,8 +260,8 @@ GLuint Shader::loadProgram(
     glGetProgramiv(progID, GL_LINK_STATUS, &programSuccess);
     if (programSuccess == GL_FALSE)
     {
-        printf("[shader] Error linking program %u\n", progID);
-        printf("[shader] Error code: %d", programSuccess);
+        reportError("[shader] Error linking program " + std::to_string(progID));
+        reportError("[shader] Error code: " + std::to_string(programSuccess));
         printProgramLog(progID);
         glDeleteShader(vertexShader);
         glDeleteShader(geometryShader);
@@ -308,8 +310,8 @@ GLuint Shader::loadProgram(std::string compPath)
     glGetProgramiv(progID, GL_LINK_STATUS, &programSuccess);
     if (programSuccess == GL_FALSE)
     {
-        printf("[shader] Error linking program %u\n", progID);
-        printf("[shader] Error code: %d", programSuccess);
+        reportError("[shader] Error linking program " + std::to_string(progID));
+        reportError("[shader] Error code: " + std::to_string(programSuccess));
         printProgramLog(progID);
         glDeleteShader(shader);
         glDeleteProgram(progID);
@@ -354,7 +356,8 @@ void Shader::collectUniforms(GLuint progID)
             type = UniformType::Vec3;
             break;
         default:
-            printf("[shader] Unknown uniform type %u\n", glType);
+            reportError(
+                "[shader] Unknown uniform type " + std::to_string(glType));
             break;
         }
         _uniforms.insert(
@@ -375,9 +378,9 @@ void Shader::collectUniforms(GLuint progID)
             UniformType type = u.second.first;
             if (type != UniformType::Float)
             {
-                printf(
-                    "[shader] '%s' should be float to use it with Rocket\n",
-                    name.c_str());
+                reportError(
+                    "[shader] '" + name +
+                    "' should be float to use it with Rocket");
                 continue;
             }
             // Add existing value if present
@@ -421,9 +424,9 @@ void Shader::collectUniforms(GLuint progID)
                  {type, {default_data[0], default_data[1], default_data[2]}}});
             break;
         default:
-            printf(
-                "[shader] Unimplemented dynamic uniform of type '%s'\n",
-                toString(type).c_str());
+            reportError(
+                "[shader] Unimplemented dynamic uniform of type " +
+                toString(type));
             break;
         }
     }
@@ -445,8 +448,10 @@ GLuint Shader::loadShader(const std::string &mainPath, GLenum shaderType)
         glGetShaderiv(shaderID, GL_COMPILE_STATUS, &shaderCompiled);
         if (shaderCompiled == GL_FALSE)
         {
-            printf("[shader] Unable to compile shader %u\n", shaderID);
-            printf("[shader] %s\n", mainPath.c_str());
+            reportError(
+                "[shader] Unable to compile shader " +
+                std::to_string(shaderID));
+            reportError("[shader] " + mainPath);
             printShaderLog(shaderID);
             shaderID = 0;
         }
@@ -512,7 +517,7 @@ std::string Shader::parseFromFile(
     }
     else
     {
-        printf("[shader] Unable to open file '%s'\n", filePath.c_str());
+        reportError("[shader] Unable to open file " + filePath);
     }
     return shaderStr;
 }
@@ -525,12 +530,13 @@ void Shader::printProgramLog(GLuint program) const
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
         char *errorLog = new char[maxLength];
         glGetProgramInfoLog(program, maxLength, &maxLength, errorLog);
-        printf("%s\n", errorLog);
+        reportError(errorLog);
         delete[] errorLog;
     }
     else
     {
-        printf("[shader] ID %u is not a program\n", program);
+        reportError(
+            "[shader] ID " + std::to_string(program) + " is not a program");
     }
 }
 
@@ -546,7 +552,7 @@ void Shader::printShaderLog(GLuint shader) const
 
         if (_vendor == Vendor::NotSupported)
         {
-            printf("%s\n", errorLog);
+            reportError(errorLog);
             delete[] errorLog;
             return;
         }
@@ -579,8 +585,8 @@ void Shader::printShaderLog(GLuint shader) const
         }
         else
         {
-            printf("[shader] Unimplemented vendor parsing\n");
-            printf("%s\n", errorLog);
+            reportError("[shader] Unimplemented vendor parsing");
+            reportError(errorLog);
             delete[] errorLog;
             delete[] shaderStr;
             return;
@@ -635,16 +641,17 @@ void Shader::printShaderLog(GLuint shader) const
                 errLine.insert(
                     0, files.top() + ':' + std::to_string(lines.top()));
             }
-            printf("%s\n", errLine.c_str());
+            reportError(errLine);
         }
-        printf("\n");
+        reportError("");
 
         delete[] errorLog;
         delete[] shaderStr;
     }
     else
     {
-        printf("[shader] ID %u is not a shader\n", shader);
+        reportError(
+            "[shader] ID " + std::to_string(shader) + " is not a shader");
     }
 }
 
@@ -656,16 +663,15 @@ GLint Shader::getUniform(const std::string &name, UniformType type) const
     auto uniform = _uniforms.find(name);
     if (uniform == _uniforms.end())
     {
-        printf("[shader] Uniform '%s' not found\n", name.c_str());
+        reportError("[shader] Uniform '" + name + "' not found");
         return -1;
     }
 
     auto [actualType, location] = uniform->second;
     if (type != actualType)
     {
-        printf(
-            "[shader] Uniform '%s' is not of type '%s'\n", name.c_str(),
-            toString(type).c_str());
+        reportError(
+            "[shader] Uniform '" + name + "' is not of type " + toString(type));
         return -1;
     }
     return location;
@@ -689,9 +695,9 @@ void Shader::setUniform(const std::string &name, const Uniform &uniform)
         glUniform3fv(location, 1, uniform.value.f);
         break;
     default:
-        printf(
-            "[shader] Setting uniform of type '%s' is unimplemented\n",
-            toString(uniform.type).c_str());
+        reportError(
+            "[shader] Setting uniform of type '" + toString(uniform.type) +
+            "' is unimplemented");
         break;
     }
 }

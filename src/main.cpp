@@ -6,6 +6,7 @@
 #include <track.h>
 
 #include "audioStream.hpp"
+#include "error.hpp"
 #include "frameBuffer.hpp"
 #include "gpuProfiler.hpp"
 #include "gui.hpp"
@@ -87,10 +88,9 @@ int main(int argc, char *argv[])
             displayIndex = 2;
         else
         {
-            fprintf(
-                stderr, "Unexpected CLI argument, only '1', '2' is supported "
+            reportError("Unexpected CLI argument, only '1', '2' is supported "
                         "for selecting second or third connected display \n");
-            exit(EXIT_FAILURE);
+            exitWithErrors(nullptr);
         }
     }
     Window window;
@@ -120,11 +120,9 @@ int main(int argc, char *argv[])
     if (!audioStream.hasMusic())
     {
 #ifdef DEMO_MODE
-        exit(EXIT_FAILURE);
+        exitWithErrors(&window);
 #else  //  !DEMO_MODE
-        fprintf(
-            stderr, "Running without rocket and timeline scrubbing.\n",
-            musicPath.c_str());
+        reportError("Running without rocket and timeline scrubbing");
 #endif // DEMO_MODE
     }
 
@@ -140,7 +138,7 @@ int main(int argc, char *argv[])
                 .generic_string()
                 .c_str());
         if (!rocket)
-            fprintf(stderr, "[rocket] Failed to create device\n");
+            reportError("[rocket] Failed to create device");
     }
 
     // Set up scene
@@ -164,7 +162,7 @@ int main(int argc, char *argv[])
         int rocketConnected =
             sync_tcp_connect(rocket, "localhost", SYNC_DEFAULT_PORT) == 0;
         if (!rocketConnected)
-            fprintf(stderr, "[rocket] Failed to connect to server\n");
+            reportError("[rocket] Failed to connect to server");
     }
 #endif // TCPROCKET
 

@@ -1,5 +1,6 @@
 #include "window.hpp"
 
+#include "error.hpp"
 #include <SDL_opengl.h>
 #include <SDL_video.h>
 #include <cstdio>
@@ -16,7 +17,7 @@ bool Window::init(int w, int h, const std::string &title, int displayIndex)
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
-        fprintf(stderr, "SDL init failed: %s\n", SDL_GetError());
+        reportError(std::string("SDL init failed: ") + SDL_GetError());
         return false;
     }
 
@@ -37,20 +38,20 @@ bool Window::init(int w, int h, const std::string &title, int displayIndex)
         SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (_window == nullptr)
     {
-        fprintf(stderr, "Window create failed: %s\n", SDL_GetError());
+        reportError(std::string("Window create failed: ") + SDL_GetError());
         goto fail;
     }
 
     _context = SDL_GL_CreateContext(_window);
     if (_context == nullptr)
     {
-        fprintf(stderr, "GL context create failed: %s\n", SDL_GetError());
+        reportError(std::string("GL context create failed: ") + SDL_GetError());
         goto fail;
     }
 
     if (SDL_GL_SetSwapInterval(1))
     {
-        fprintf(stderr, "Vsync setup failed: %s\n", SDL_GetError());
+        reportError(std::string("Vsync setup failed: ") + SDL_GetError());
         goto fail;
     }
 
@@ -62,8 +63,8 @@ bool Window::init(int w, int h, const std::string &title, int displayIndex)
     err = glGetError();
     if (err != GL_NO_ERROR)
     {
-        fprintf(stderr, "Error initializing GL!\n");
-        fprintf(stderr, "Code: %d\n", err);
+        reportError("Error initializing GL!");
+        reportError("Code: " + std::to_string(err));
         goto fail;
     }
 

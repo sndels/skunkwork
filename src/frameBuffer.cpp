@@ -1,5 +1,6 @@
 #include "frameBuffer.hpp"
 
+#include "error.hpp"
 #include <cstdio>
 
 FrameBuffer::FrameBuffer(
@@ -53,8 +54,8 @@ FrameBuffer::FrameBuffer(
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
     {
-        printf("[framebuffer] Init failed\n");
-        printf("[framebuffer] Status: %u\n", status);
+        reportError("[framebuffer] Init failed");
+        reportError("[framebuffer] Status: %u" + std::to_string(status));
     }
 }
 
