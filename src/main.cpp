@@ -62,6 +62,8 @@ static struct sync_cb audioSync = {
 #endif // DEMO_MODE
 
 #if defined(DEMO_MODE) && defined(_WIN32)
+// Use WinMain (no terminal) in demo mode to ensure that the fullscreen app gets
+// focus instead of the potential newly opened terminal window.
 int APIENTRY WinMain(
     HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
