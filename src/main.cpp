@@ -71,22 +71,23 @@ const int32_t sRowsPerBeat = 8;
 #endif // DEMO_MODE
 
 #if defined(DEMO_MODE) && defined(_WIN32)
+
 // Use WinMain (no terminal) in demo mode to ensure that the fullscreen app gets
 // focus instead of the potential newly opened terminal window.
 int APIENTRY WinMain(
-    HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
+    HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, PSTR /*lpCmdLine*/,
+    INT /*nCmdShow*/)
 {
-    (void)hInstance;
-    (void)hPrevInstance;
-    (void)lpCmdLine;
-    (void)nCmdShow;
-
     int argc = __argc;
     char **argv = __argv;
-#else  // !DEMO_MODE || !_WIN32
+
+#else // !DEMO_MODE || !_WIN32
+
 int main(int argc, char *argv[])
 {
+
 #endif // DEMO_MODE && _WIN32
+
     int displayIndex = 0;
     if (argc == 2)
     {
