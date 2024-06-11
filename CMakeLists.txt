@@ -34,7 +34,7 @@ add_subdirectory(src)
 add_executable(skunkwork ${WIN32_DEF} ${SKUNKWORK_SOURCES})
 target_compile_features(skunkwork
     PRIVATE
-    cxx_std_17
+    cxx_std_20
 )
 
 if(MSVC)
