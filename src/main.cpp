@@ -328,16 +328,7 @@ int main(int argc, char *argv[])
 
             compositeProf.startSample();
             compositeShader.bind(syncRow);
-            compositeShader.setFloat(
-                "uTime",
-#ifdef DEMO_MODE
-                currentTimeS
-#else  // DEMO_NODE
-                gui.useSliderTime() ? gui.sliderTime() : globalTime.getSeconds()
-#endif // DEMO_MODE
-            );
-            compositeShader.setVec2(
-                "uRes", (GLfloat)window.width(), (GLfloat)window.height());
+            UPDATE_COMMON_UNIFORMS(compositeShader);
             scenePingFbo.bindRead(
                 0, GL_TEXTURE0,
                 compositeShader.getUniformLocation("uScenePingColorDepth"));
