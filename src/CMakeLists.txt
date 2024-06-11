@@ -1,5 +1,6 @@
 set(SKUNKWORK_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/audioStream.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/error.cpp
     ${CMAKE_CURRENT_LIST_DIR}/frameBuffer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/gpuProfiler.cpp
     ${CMAKE_CURRENT_LIST_DIR}/gui.cpp
