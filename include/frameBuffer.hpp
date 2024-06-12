@@ -20,6 +20,7 @@ class FrameBuffer
 
     void bindWrite();
     void bindRead(uint32_t texNum, GLenum texUnit, GLint uniforms);
+    void bindBlitRead();
     void genMipmap(uint32_t texNum);
     void resize(uint32_t w, uint32_t h);
 

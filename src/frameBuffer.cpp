@@ -90,6 +90,11 @@ void FrameBuffer::bindRead(uint32_t texNum, GLenum texUnit, GLint uniform)
     }
 }
 
+void FrameBuffer::bindBlitRead()
+{
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo);
+}
+
 void FrameBuffer::genMipmap(uint32_t texNum)
 {
     glBindTexture(GL_TEXTURE_2D, _texIDs.at(texNum));
