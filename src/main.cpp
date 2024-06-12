@@ -40,6 +40,12 @@ const uint32_t sYRes = 1080;
 const float sBeatsPerMinute = 175.f;
 const int32_t sRowsPerBeat = 8;
 
+std::string fullResPath(const std::string &pathInRes)
+{
+    // RES_DIRECTORY is a constant set by cmake based on the build config.
+    return RES_DIRECTORY + pathInRes;
+}
+
 } // namespace
 
 #ifdef DEMO_MODE
@@ -118,8 +124,7 @@ int main(int argc, char *argv[])
     Quad q;
 
     // Set up audio
-    std::string musicPath(RES_DIRECTORY);
-    musicPath += "no_music_path_given";
+    const std::string musicPath = fullResPath("no_music_path_given");
 
     AudioStream &audioStream = AudioStream::getInstance();
 
@@ -139,7 +144,7 @@ int main(int argc, char *argv[])
     {
         rocket = sync_create_device(
             std::filesystem::relative(
-                std::filesystem::path{RES_DIRECTORY "rocket/sync"},
+                std::filesystem::path{fullResPath("rocket/sync")},
                 std::filesystem::current_path())
                 .lexically_normal()
                 .generic_string()
@@ -149,18 +154,18 @@ int main(int argc, char *argv[])
     }
 
     // Set up scene
-    std::string vertPath{RES_DIRECTORY "shader/basic_vert.glsl"};
+    const std::string vertPath{fullResPath("shader/basic_vert.glsl")};
     std::vector<Shader> sceneShaders;
     sceneShaders.emplace_back(
-        "Basic", rocket, vertPath, RES_DIRECTORY "shader/basic_frag.glsl");
+        "Basic", rocket, vertPath, fullResPath("shader/basic_frag.glsl"));
     sceneShaders.emplace_back(
         "RayMarch", rocket, vertPath,
-        RES_DIRECTORY "shader/ray_marching_frag.glsl");
+        fullResPath("shader/ray_marching_frag.glsl"));
     sceneShaders.emplace_back(
-        "Text", rocket, vertPath, RES_DIRECTORY "shader/text_frag.glsl");
+        "Text", rocket, vertPath, fullResPath("shader/text_frag.glsl"));
     Shader compositeShader(
         "Composite", rocket, vertPath,
-        RES_DIRECTORY "shader/composite_frag.glsl");
+        fullResPath("shader/composite_frag.glsl"));
 
 #ifdef TCPROCKET
     if (rocket != nullptr)
