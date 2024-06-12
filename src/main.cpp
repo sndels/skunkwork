@@ -109,6 +109,7 @@ int main(int argc, char *argv[])
         }
     }
     Window window;
+    // This also sets up our gl profile and backbuffer bits
     if (!window.init(sXRes, sYRes, "skunkwork", displayIndex))
         return -1;
 
@@ -153,7 +154,7 @@ int main(int argc, char *argv[])
             reportError("[rocket] Failed to create device");
     }
 
-    // Set up scene
+    // Set up shaders
     const std::string vertPath{fullResPath("shader/basic_vert.glsl")};
     std::vector<Shader> sceneShaders;
     sceneShaders.emplace_back(
@@ -197,15 +198,18 @@ int main(int argc, char *argv[])
         {"ScenePong", &scenePongProf},
         {"Composite", &compositeProf}};
 
+    // Generate framebuffers for main rendering
     TextureParams rgba16fParams = {
         GL_RGBA16F,         GL_RGBA,           GL_FLOAT, GL_LINEAR, GL_LINEAR,
         GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER};
-
-    // Generate framebuffer for main rendering
     std::vector<TextureParams> sceneTexParams({rgba16fParams});
-
     FrameBuffer scenePingFbo(sXRes, sYRes, sceneTexParams);
     FrameBuffer scenePongFbo(sXRes, sYRes, sceneTexParams);
+
+    // You'll want to enable depth test any FrameBuffer has depth and some pass
+    // writes into it. Either toggle glEnable/glDisable around the pass that
+    // should test, if some passes shouldn't, or just enable here and leave it
+    // if all passes can have it enabled.
 
     if (audioStream.hasMusic())
         audioStream.play();
@@ -264,8 +268,6 @@ int main(int argc, char *argv[])
                 (int32_t)sync_get_val(pongScene, syncRow), 0,
                 (int32_t)sceneShaders.size() - 1);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         if (audioStream.hasMusic())
             currentTimeS = (float)audioStream.getTimeS();
 #ifndef DEMO_MODE
@@ -299,7 +301,6 @@ int main(int argc, char *argv[])
             reloadTime.reset();
         }
 
-        // TODO: No need to reset before switch back
         if (gui.shouldResetTime())
             globalTime.reset();
 
@@ -307,48 +308,102 @@ int main(int argc, char *argv[])
         {
             scenePingProf.startSample();
             sceneShaders[overrideIndex].bind(syncRow);
+
+            // Draw into custom fbo in case we rely on enough alpha bits etc.
+            // This assumes that pingFbo satisfies all scenes' requirements
+            scenePingFbo.bindWrite();
+
+            // Clearing is not strictly necessary for all shaders but it's fast
+            // enough that we probably don't care about the extra work
+            glClearColor(0.f, 0.f, 0.f, 0.f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
             UPDATE_COMMON_UNIFORMS(sceneShaders[overrideIndex]);
             q.render();
+
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+            // Blit result into the backbuffer as we don't have the special
+            // composite pass here
+            glDrawBuffer(GL_BACK);
+
+            glClearColor(0.f, 0.f, 0.f, 0.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            scenePingFbo.bindBlitRead();
+            glBlitFramebuffer(
+                0, 0, window.width(), window.height(), 0, 0, window.width(),
+                window.height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
             scenePingProf.endSample();
         }
         else
-#endif //! DEMO_MODE
+#endif // !DEMO_MODE
         {
-            scenePingProf.startSample();
+            {
+                // Draw the first scene offscreen
+                scenePingProf.startSample();
 
-            sceneShaders[pingIndex].bind(syncRow);
-            scenePingFbo.bindWrite();
+                sceneShaders[pingIndex].bind(syncRow);
+                scenePingFbo.bindWrite();
 
-            UPDATE_COMMON_UNIFORMS(sceneShaders[pingIndex]);
+                // Clearing is not strictly necessary for all shaders but it's
+                // fast enough that we probably don't care about the extra work
+                glClearColor(0.f, 0.f, 0.f, 0.f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            q.render();
+                UPDATE_COMMON_UNIFORMS(sceneShaders[pingIndex]);
 
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            scenePingProf.endSample();
+                q.render();
 
-            scenePongProf.startSample();
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+                scenePingProf.endSample();
+            }
 
-            sceneShaders[pongIndex].bind(syncRow);
-            scenePongFbo.bindWrite();
+            {
+                // Draw the second scene offscreen
+                scenePongProf.startSample();
 
-            UPDATE_COMMON_UNIFORMS(sceneShaders[pongIndex]);
+                sceneShaders[pongIndex].bind(syncRow);
+                scenePongFbo.bindWrite();
 
-            q.render();
+                // Clearing is not strictly necessary for all shaders but it's
+                // fast enough that we probably don't care about the extra work
+                glClearColor(0.f, 0.f, 0.f, 0.f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            scenePongProf.endSample();
+                UPDATE_COMMON_UNIFORMS(sceneShaders[pongIndex]);
 
-            compositeProf.startSample();
-            compositeShader.bind(syncRow);
-            UPDATE_COMMON_UNIFORMS(compositeShader);
-            scenePingFbo.bindRead(
-                0, GL_TEXTURE0,
-                compositeShader.getUniformLocation("uScenePingColorDepth"));
-            scenePongFbo.bindRead(
-                0, GL_TEXTURE1,
-                compositeShader.getUniformLocation("uScenePongColorDepth"));
-            q.render();
-            compositeProf.endSample();
+                q.render();
+
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+                scenePongProf.endSample();
+            }
+
+            {
+                // Composite the two offscreen images together onto the
+                // backbuffer
+                compositeProf.startSample();
+                compositeShader.bind(syncRow);
+
+                // Clearing is not strictly necessary for all shaders but it's
+                // fast enough that we probably don't care about the extra work
+                glClearColor(0.f, 0.f, 0.f, 0.f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                UPDATE_COMMON_UNIFORMS(compositeShader);
+
+                scenePingFbo.bindRead(
+                    0, GL_TEXTURE0,
+                    compositeShader.getUniformLocation("uScenePingColorDepth"));
+                scenePongFbo.bindRead(
+                    0, GL_TEXTURE1,
+                    compositeShader.getUniformLocation("uScenePongColorDepth"));
+
+                q.render();
+
+                compositeProf.endSample();
+            }
         }
 
 #ifndef DEMO_MODE
