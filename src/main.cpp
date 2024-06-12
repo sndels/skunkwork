@@ -251,12 +251,12 @@ int main(int argc, char *argv[])
         int32_t pingIndex = 0;
         if (pingScene != nullptr)
             pingIndex = std::clamp(
-                (int32_t)(float)sync_get_val(pingScene, syncRow), 0,
+                (int32_t)sync_get_val(pingScene, syncRow), 0,
                 (int32_t)sceneShaders.size() - 1);
         int32_t pongIndex = 0;
         if (pongScene != nullptr)
             pongIndex = std::clamp(
-                (int32_t)(float)sync_get_val(pongScene, syncRow), 0,
+                (int32_t)sync_get_val(pongScene, syncRow), 0,
                 (int32_t)sceneShaders.size() - 1);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
