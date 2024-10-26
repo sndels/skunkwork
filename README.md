@@ -2,12 +2,14 @@
 
 ![screenshot](screenshot.png)
 
-A lightweight framework for fooling around with GLSL-shaders, mainly designed for demos. Current features:
+A lightweight framework for fooling around with GLSL-shaders, mainly designed for demos.
+
+Current features:
 
 - Includes in glsl
-  - nesting supported
-  - error lines parsed into vscode links per file on some drivers
-    - filepath and raw error line otherwise
+  - Nesting supported
+  - Error lines parsed into vscode links per file on some drivers
+    - Filepath and raw error line otherwise
 - Dynamic uniform edit UI
   - `d*` Hungarian notation uniforms are picked up
   - `bool`, `float`, `int`, `uint`, `(u/i)vec2`, `(u/i)vec3` and `(u/i)vec4` supported
@@ -19,8 +21,8 @@ A lightweight framework for fooling around with GLSL-shaders, mainly designed fo
   - `float` uniforms using `r*` Hungarian notation are picked up
 - Mercury's [hg_sdf](http://mercury.sexy/hg_sdf) included for CSG
 - Basic built-in shaders
-  - noise, prng
-  - physically based BRDF for shading
+  - Noise, prng
+  - Physically based BRDF for shading
   - SDF font rendering
 
 I have used [emoon's](https://github.com/emoon/rocket) as my Rocket-server.
@@ -32,10 +34,6 @@ I have used [emoon's](https://github.com/emoon/rocket) as my Rocket-server.
 - [Cubnature](https://www.youtube.com/watch?v=jPcddtRBYu8) - as graffa bois
 - [Rekursiivinen Templete](https://www.youtube.com/watch?v=NA99MrZvlBM) - as graffa bois
 - [Twos Complement](https://www.youtube.com/watch?v=mN_lOFTe_ro) - as graffa bois
-
-## Build targets
-
-There are two builds: `skunkwork` holds all the bells and whistles while `skunktoy` drops Rocket and audio integration for more minimalist shader tinkering.
 
 ## Dependencies
 
